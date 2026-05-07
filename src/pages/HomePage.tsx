@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Plus, Search, ShieldCheck, X } from 'lucide-react';
 import TenderUpload from '../components/upload/TenderUpload';
 import TenderCard from '../components/tenders/TenderCard';
+import ImpactPanel from '../components/tenders/ImpactPanel';
 import { useTender, type TenderSummary } from '../hooks/useTender';
 import { Link } from 'react-router-dom';
 
@@ -41,6 +42,8 @@ export default function HomePage() {
           independent and persists across sessions.
         </p>
       </section>
+
+      <ImpactPanel />
 
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">

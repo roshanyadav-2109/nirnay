@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { ShieldCheck, ShieldAlert, RefreshCcw } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, RefreshCcw, Bug } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuditLog } from '../hooks/useAuditLog';
-import { logAuditEvent } from '../lib/audit-logger';
+import { logAuditEvent, simulateTampering } from '../lib/audit-logger';
 import AuditEventRow from '../components/audit/AuditEvent';
 
 export default function AuditPage() {
@@ -21,6 +21,24 @@ export default function AuditPage() {
         JSON.stringify(e.payload).toLowerCase().includes(q),
     );
   }, [events, filter]);
+
+  const handleTamper = async () => {
+    const t = toast.loading('Simulating tampering — modifying one audit row…');
+    try {
+      const row = await simulateTampering();
+      if (!row) {
+        toast.error('No audit events to tamper with', { id: t });
+        return;
+      }
+      toast.success(`Tampered with event #${row.id}. Click "Verify chain" to detect it.`, {
+        id: t,
+        duration: 5000,
+      });
+      await refresh();
+    } catch (e) {
+      toast.error(`Failed: ${(e as Error).message}`, { id: t });
+    }
+  };
 
   const handleVerify = async () => {
     setVerifying(true);
@@ -55,6 +73,13 @@ export default function AuditPage() {
         <div className="flex items-center gap-2">
           <button onClick={refresh} className="nirnay-btn-ghost text-sm">
             <RefreshCcw size={14} /> Refresh
+          </button>
+          <button
+            onClick={handleTamper}
+            className="nirnay-btn-ghost text-sm border-verdict-not-eligible/40 text-verdict-not-eligible hover:bg-verdict-not-eligible-bg"
+            title="Demo only — modify a row's payload directly to prove the chain catches it"
+          >
+            <Bug size={13} /> Simulate tampering
           </button>
           <button
             onClick={handleVerify}

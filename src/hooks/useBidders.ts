@@ -2,14 +2,34 @@ import { useCallback } from 'react';
 import { supabase, uploadToStorage } from '../config/supabase';
 import { useEvaluationStore } from '../store/evaluation-store';
 import { logAuditEvent } from '../lib/audit-logger';
-import { evaluateCriterion } from '../lib/bid-analyzer';
+import { evaluateAllCriteriaForBidder } from '../lib/bid-analyzer';
 import { computeOverallVerdict } from '../lib/verdict-engine';
 import { sha256OfFile } from '../lib/pdf-utils';
-import type { Bidder, BidderDocument, Criterion, Evaluation } from '../types';
+import { isDemoMode } from '../lib/demo-mode';
+import { getDemoEvaluationsForBidder, genericNeedsReview } from '../lib/demo-cache';
+import type { Bidder, BidderDocument, Criterion, Evaluation, EvaluationResponse } from '../types';
 
 export interface NewBidderInput {
   name: string;
   files: File[];
+}
+
+const EVALUATE_CONCURRENCY = 3;
+
+async function runWithConcurrency<T>(
+  items: T[],
+  limit: number,
+  fn: (item: T, idx: number) => Promise<void>,
+): Promise<void> {
+  const queue = items.map((it, idx) => ({ it, idx }));
+  const workers = Array.from({ length: Math.min(limit, queue.length) }, async () => {
+    while (queue.length) {
+      const next = queue.shift();
+      if (!next) return;
+      await fn(next.it, next.idx);
+    }
+  });
+  await Promise.all(workers);
 }
 
 export function useBidders() {
@@ -64,6 +84,8 @@ export function useBidders() {
     [upsertBidder],
   );
 
+  // Evaluate one bidder against ALL criteria via a single Gemini call,
+  // OR demo-cache lookup if demo mode is on.
   const evaluateBidder = useCallback(
     async (bidder: Bidder, criteria: Criterion[]): Promise<Evaluation[]> => {
       const updated: Bidder = { ...bidder, status: 'processing' };
@@ -75,62 +97,75 @@ export function useBidders() {
         entity_type: 'bidder',
         entity_id: bidder.id,
         actor: 'system',
-        payload: { criterion_count: criteria.length },
+        payload: { criterion_count: criteria.length, mode: isDemoMode() ? 'demo' : 'live' },
       });
 
-      const results: Evaluation[] = [];
-      for (const criterion of criteria) {
+      // Clear any existing evaluations for this bidder so re-runs replace cleanly.
+      await supabase.from('evaluations').delete().eq('bidder_id', bidder.id);
+
+      let evaluations: EvaluationResponse[] = [];
+      let rawResponse = '';
+
+      if (isDemoMode()) {
+        const cached = getDemoEvaluationsForBidder(bidder.name);
+        if (cached) {
+          evaluations = criteria.map((c, idx) => cached[idx] ?? genericNeedsReview(c.criterion_code));
+          rawResponse = '[demo mode] cached evaluations';
+        } else {
+          evaluations = criteria.map((c) => genericNeedsReview(c.criterion_code));
+          rawResponse = '[demo mode] no cache match for bidder name';
+        }
+      } else {
         try {
-          const { evaluation, rawResponse } = await evaluateCriterion({
-            criterion,
+          const result = await evaluateAllCriteriaForBidder({
+            criteria,
             documents: bidder.documents,
           });
-
-          const { data: insertedEval, error } = await supabase
-            .from('evaluations')
-            .insert({
-              bidder_id: bidder.id,
-              criterion_id: criterion.id,
-              tender_id: bidder.tender_id,
-              status: evaluation.status,
-              found_value: evaluation.found_value || null,
-              found_unit: evaluation.found_unit || null,
-              confidence: evaluation.confidence,
-              evidence_text: evaluation.evidence_text || null,
-              evidence_doc: evaluation.evidence_doc || null,
-              evidence_page: evaluation.evidence_page ?? null,
-              reasoning: evaluation.reasoning,
-              llm_raw_response: { raw: rawResponse.slice(0, 2000) },
-              human_override: false,
-            })
-            .select()
-            .single();
-          if (error) throw error;
-          const evalRow = { ...(insertedEval as Evaluation), criterion };
-          results.push(evalRow);
-          upsertEvaluation(evalRow);
+          evaluations = result.evaluations;
+          rawResponse = result.rawResponse;
         } catch (err) {
-          const fallback: Partial<Evaluation> = {
-            bidder_id: bidder.id,
-            criterion_id: criterion.id,
-            tender_id: bidder.tender_id,
+          // Per-bidder hard failure -> mark all as needs_review with the error.
+          evaluations = criteria.map((c) => ({
             status: 'needs_review',
             confidence: 0.3,
-            reasoning: `Evaluation failed: ${(err as Error).message}. Marked as needs_review for human inspection.`,
-            human_override: false,
-          };
-          const { data: insertedEval } = await supabase
-            .from('evaluations')
-            .insert(fallback)
-            .select()
-            .single();
-          if (insertedEval) {
-            const evalRow = { ...(insertedEval as Evaluation), criterion };
-            results.push(evalRow);
-            upsertEvaluation(evalRow);
-          }
+            reasoning: `Evaluation failed: ${(err as Error).message}. Marked needs_review for human inspection.`,
+            criterion_code: c.criterion_code,
+          }));
+          rawResponse = `error: ${(err as Error).message}`;
         }
       }
+
+      // Insert all evaluations as one batch row insert.
+      const rows = criteria.map((criterion, idx) => {
+        const ev = evaluations[idx] ?? genericNeedsReview(criterion.criterion_code);
+        return {
+          bidder_id: bidder.id,
+          criterion_id: criterion.id,
+          tender_id: bidder.tender_id,
+          status: ev.status,
+          found_value: ev.found_value || null,
+          found_unit: ev.found_unit || null,
+          confidence: ev.confidence,
+          evidence_text: ev.evidence_text || null,
+          evidence_doc: ev.evidence_doc || null,
+          evidence_page: ev.evidence_page ?? null,
+          reasoning: ev.reasoning,
+          llm_raw_response: { mode: isDemoMode() ? 'demo' : 'live', raw: rawResponse.slice(0, 800) },
+          human_override: false,
+        };
+      });
+
+      const { data: insertedEvals, error } = await supabase
+        .from('evaluations')
+        .insert(rows)
+        .select();
+      if (error) throw error;
+
+      const results: Evaluation[] = (insertedEvals || []).map((row, idx) => ({
+        ...(row as Evaluation),
+        criterion: criteria[idx],
+      }));
+      for (const r of results) upsertEvaluation(r);
 
       const overall = computeOverallVerdict(results);
       const { data: updatedBidder } = await supabase
@@ -151,6 +186,7 @@ export function useBidders() {
           passed: overall.passedCount,
           failed: overall.failedCount,
           review: overall.reviewCount,
+          mode: isDemoMode() ? 'demo' : 'live',
         },
       });
 
@@ -176,9 +212,9 @@ export function useBidders() {
       setPipelineStage('match', 'active');
       setIsProcessing(true);
       try {
-        for (const bidder of bidders) {
+        await runWithConcurrency(bidders, EVALUATE_CONCURRENCY, async (bidder) => {
           await evaluateBidder(bidder, criteria);
-        }
+        });
         setPipelineStage('match', 'done');
         setPipelineStage('verdict', 'done');
       } finally {
@@ -274,7 +310,6 @@ export function useBidders() {
         },
       });
 
-      // Try to clean up the bidder's documents from storage.
       try {
         const paths = bidder.documents.map((d) => d.file_path).filter(Boolean);
         if (paths.length) {

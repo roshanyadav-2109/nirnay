@@ -70,6 +70,32 @@ export async function logAuditEvent(opts: {
   }
 }
 
+// Simulate tampering by mutating the payload of one persisted audit event in-place
+// (without recomputing the hash). The chain verifier should then flag this row.
+// Returns the row that was tampered with so the UI can highlight it.
+export async function simulateTampering(): Promise<AuditEvent | null> {
+  const list = await fetchAuditEvents(50);
+  // Avoid the genesis event so the demo is more interesting.
+  const candidate = list.length > 1 ? list[Math.floor(list.length / 2)] : list[0];
+  if (!candidate) return null;
+
+  const tamperedPayload = {
+    ...(candidate.payload || {}),
+    __tampered: true,
+    __tampered_at: new Date().toISOString(),
+    note: 'Payload was modified directly in the database — chain hash should no longer match.',
+  };
+
+  const { data, error } = await supabase
+    .from('audit_log')
+    .update({ payload: tamperedPayload })
+    .eq('id', candidate.id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as AuditEvent;
+}
+
 export async function fetchAuditEvents(limit = 500): Promise<AuditEvent[]> {
   const { data, error } = await supabase
     .from('audit_log')

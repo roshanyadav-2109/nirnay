@@ -26,15 +26,9 @@ export default function Sidebar() {
   return (
     <aside className="w-60 bg-white border-r border-rule flex flex-col">
       <div className="px-6 py-6">
-        <div className="flex items-baseline gap-2">
-          <span className="font-serif italic text-3xl text-ink leading-none">Nirnay</span>
-          <span className="font-mono text-[10px] text-navy-300 tracking-wider">
-            निर्णय
-          </span>
-        </div>
-        <p className="text-[11px] text-navy-400 mt-1.5 leading-snug">
-          Citation-backed
-          <br />tender evaluation
+        <div className="font-serif italic text-3xl text-ink leading-none">Nirnay</div>
+        <p className="text-[11px] text-navy-400 mt-2 leading-snug tracking-wide uppercase">
+          Tender evaluation
         </p>
       </div>
 

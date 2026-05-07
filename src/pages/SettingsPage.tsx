@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { KeyRound, ExternalLink, Trash2, Check, Cpu, UserCircle2 } from 'lucide-react';
+import { KeyRound, ExternalLink, Trash2, Check, Cpu, UserCircle2, Zap } from 'lucide-react';
 import {
   getGeminiApiKey,
   setGeminiApiKey,
@@ -9,6 +9,7 @@ import {
   GEMINI_MODELS,
 } from '../config/gemini';
 import { getOfficerName, setOfficerName } from '../lib/officer';
+import { isDemoMode, setDemoMode } from '../lib/demo-mode';
 import toast from 'react-hot-toast';
 
 export default function SettingsPage() {
@@ -16,6 +17,13 @@ export default function SettingsPage() {
   const [revealed, setRevealed] = useState(false);
   const [modelId, setModelIdState] = useState(getGeminiModelId());
   const [officer, setOfficerState] = useState(getOfficerName());
+  const [demo, setDemoState] = useState(isDemoMode());
+
+  const toggleDemo = (v: boolean) => {
+    setDemoState(v);
+    setDemoMode(v);
+    toast.success(v ? 'Demo mode ON — evaluations use cached results' : 'Demo mode OFF — live Gemini calls');
+  };
 
   const saveOfficer = () => {
     const trimmed = officer.trim();
@@ -52,6 +60,34 @@ export default function SettingsPage() {
           API keys live in your browser only — never sent to our servers.
         </p>
       </div>
+
+      <section className={`nirnay-card p-6 ${demo ? 'border-ink' : ''}`}>
+        <div className="mb-4">
+          <p className="label-overline">Demo</p>
+          <h3 className="font-display font-semibold text-lg text-ink mt-1.5 tracking-tight flex items-center gap-2">
+            <Zap size={16} strokeWidth={1.75} className="text-navy-400" />
+            Demo mode
+          </h3>
+          <p className="text-xs text-navy-400 mt-1 leading-relaxed">
+            Skip live LLM calls — use cached, deterministic verdicts for the bundled sample bidders. Recommended for live demos: evaluation finishes in 1–2 seconds and never hits a quota error.
+          </p>
+        </div>
+        <button
+          onClick={() => toggleDemo(!demo)}
+          className={`relative inline-flex items-center w-12 h-6 rounded-full transition-colors ${
+            demo ? 'bg-ink' : 'bg-navy-200'
+          }`}
+        >
+          <span
+            className={`absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition-transform ${
+              demo ? 'translate-x-6' : ''
+            }`}
+          />
+        </button>
+        <span className="ml-3 text-sm font-medium text-ink">
+          {demo ? 'On' : 'Off'}
+        </span>
+      </section>
 
       <section className="nirnay-card p-6">
         <div className="mb-5">

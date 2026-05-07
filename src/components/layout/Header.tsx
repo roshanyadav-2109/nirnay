@@ -1,6 +1,7 @@
 import { useEvaluationStore } from '../../store/evaluation-store';
 import { hasGeminiApiKey } from '../../config/gemini';
-import { AlertTriangle, KeyRound } from 'lucide-react';
+import { isDemoMode } from '../../lib/demo-mode';
+import { AlertTriangle, KeyRound, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const STAGE_DOTS: Record<'idle' | 'active' | 'done' | 'error', string> = {
@@ -13,6 +14,7 @@ const STAGE_DOTS: Record<'idle' | 'active' | 'done' | 'error', string> = {
 export default function Header() {
   const { tender, pipeline, isProcessing } = useEvaluationStore();
   const keyOk = hasGeminiApiKey();
+  const demo = isDemoMode();
 
   return (
     <header className="bg-white border-b border-rule px-8 py-4">
@@ -45,6 +47,16 @@ export default function Header() {
             ))}
           </div>
 
+          {demo && (
+            <Link
+              to="/settings"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-medium text-ink bg-yellow-50 border border-yellow-200 hover:bg-yellow-100"
+              title="Demo mode is on — evaluations use cached responses"
+            >
+              <Zap size={11} />
+              Demo mode
+            </Link>
+          )}
           {!keyOk ? (
             <Link
               to="/settings"
