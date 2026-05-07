@@ -5,8 +5,8 @@ import { Link } from 'react-router-dom';
 
 const STAGE_DOTS: Record<'idle' | 'active' | 'done' | 'error', string> = {
   idle: 'bg-navy-200',
-  active: 'bg-gold-400 animate-pulse',
-  done: 'bg-verdict-eligible',
+  active: 'bg-ink animate-pulse',
+  done: 'bg-ink',
   error: 'bg-verdict-not-eligible',
 };
 
@@ -15,57 +15,56 @@ export default function Header() {
   const keyOk = hasGeminiApiKey();
 
   return (
-    <header className="bg-cream-100 border-b border-cream-400/60 px-8 py-4">
+    <header className="bg-white border-b border-rule px-8 py-4">
       <div className="flex items-center justify-between gap-6">
-        <div>
-          <h1 className="font-display text-xl font-semibold text-navy-800">
+        <div className="min-w-0">
+          <h1 className="font-display text-lg font-semibold text-ink tracking-tight truncate">
             {tender ? tender.name : 'Tender Evaluation'}
           </h1>
-          <p className="text-sm text-navy-400 mt-0.5">
+          <p className="text-xs text-navy-400 mt-0.5">
             Every verdict, with evidence.
           </p>
         </div>
 
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-1.5">
             {pipeline.map((stage, idx) => (
-              <div key={stage.key} className="flex items-center gap-2">
-                <div className="flex flex-col items-center">
+              <div key={stage.key} className="flex items-center gap-1.5">
+                <div className="flex flex-col items-center min-w-[44px]">
                   <div
-                    className={`w-2.5 h-2.5 rounded-full ${STAGE_DOTS[stage.status]}`}
+                    className={`w-1.5 h-1.5 rounded-full ${STAGE_DOTS[stage.status]}`}
                   />
-                  <span className="text-[10px] text-navy-400 mt-1 font-mono">
+                  <span className="text-[9px] uppercase tracking-wider text-navy-400 mt-1.5 font-medium">
                     {stage.label}
                   </span>
                 </div>
                 {idx < pipeline.length - 1 && (
-                  <div className="w-6 h-px bg-navy-200" />
+                  <div className="w-4 h-px bg-rule" />
                 )}
               </div>
             ))}
           </div>
 
-          {!keyOk && (
+          {!keyOk ? (
             <Link
               to="/settings"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-verdict-review-bg text-verdict-review text-xs font-medium hover:bg-verdict-review-bg/80"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-medium text-verdict-review bg-verdict-review-bg border border-verdict-review/20 hover:bg-verdict-review-bg/70"
             >
-              <AlertTriangle size={14} />
+              <AlertTriangle size={11} />
               No API key
             </Link>
-          )}
-          {keyOk && (
+          ) : (
             <Link
               to="/settings"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-verdict-eligible-bg text-verdict-eligible text-xs font-medium"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-medium text-navy-500 hover:text-ink hover:bg-cream-200"
             >
-              <KeyRound size={14} />
+              <KeyRound size={11} />
               API key set
             </Link>
           )}
           {isProcessing && (
-            <div className="text-xs text-navy-500 font-mono animate-pulse">
-              Processing…
+            <div className="text-[11px] text-navy-400 font-mono animate-pulse">
+              processing…
             </div>
           )}
         </div>

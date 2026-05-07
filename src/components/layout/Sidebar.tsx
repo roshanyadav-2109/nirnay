@@ -18,56 +18,61 @@ const items = [
 
 export default function Sidebar() {
   return (
-    <aside className="w-64 bg-navy-800 text-cream-200 flex flex-col">
-      <div className="px-6 py-6 border-b border-navy-700">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gold-400 rounded-lg flex items-center justify-center">
-            <span className="font-display font-bold text-navy-800 text-xl">N</span>
-          </div>
-          <div>
-            <div className="font-display font-semibold text-lg leading-tight">Nirnay</div>
-            <div className="font-mono text-[10px] text-cream-300/60 tracking-wider">
-              निर्णय
-            </div>
-          </div>
+    <aside className="w-60 bg-white border-r border-rule flex flex-col">
+      <div className="px-6 py-6">
+        <div className="flex items-baseline gap-2">
+          <span className="font-serif italic text-3xl text-ink leading-none">
+            Nirnay
+          </span>
+          <span className="font-mono text-[10px] text-navy-300 tracking-wider">
+            निर्णय
+          </span>
         </div>
+        <p className="text-[11px] text-navy-400 mt-1.5 leading-snug">
+          Citation-backed
+          <br />tender evaluation
+        </p>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <div className="h-px bg-rule mx-6" />
+
+      <nav className="flex-1 px-3 py-4 space-y-0.5">
         {items.map(({ to, label, Icon }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              `flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
                 isActive
-                  ? 'bg-navy-700 text-gold-200'
-                  : 'text-cream-200/80 hover:bg-navy-700/50 hover:text-cream-200'
+                  ? 'bg-cream-300 text-ink font-medium'
+                  : 'text-navy-500 hover:bg-cream-200 hover:text-ink'
               }`
             }
           >
-            <Icon size={18} />
+            <Icon size={15} strokeWidth={1.75} />
             {label}
           </NavLink>
         ))}
       </nav>
 
-      <div className="p-3 border-t border-navy-700">
+      <div className="h-px bg-rule mx-6" />
+
+      <div className="p-3">
         <NavLink
           to="/settings"
           className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            `flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
               isActive
-                ? 'bg-navy-700 text-gold-200'
-                : 'text-cream-200/80 hover:bg-navy-700/50'
+                ? 'bg-cream-300 text-ink font-medium'
+                : 'text-navy-500 hover:bg-cream-200 hover:text-ink'
             }`
           }
         >
-          <Settings size={18} />
+          <Settings size={15} strokeWidth={1.75} />
           Settings
         </NavLink>
-        <div className="px-3 pt-3 text-[10px] text-cream-300/40 font-mono">
+        <div className="px-3 pt-3 text-[10px] text-navy-300 font-mono">
           v0.1.0 · POC
         </div>
       </div>

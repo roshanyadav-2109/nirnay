@@ -60,9 +60,9 @@ export default function AuditPage() {
           <button
             onClick={handleVerify}
             disabled={verifying}
-            className="nirnay-btn-gold"
+            className="nirnay-btn-primary"
           >
-            <ShieldCheck size={16} /> Verify Chain
+            <ShieldCheck size={14} /> Verify chain
           </button>
         </div>
       </div>

@@ -1,11 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import {
-  ArrowRight,
-  Sparkles,
-  ShieldCheck,
-  Quote,
-} from 'lucide-react';
+import { ArrowRight, ShieldCheck } from 'lucide-react';
 import TenderUpload from '../components/upload/TenderUpload';
 import BidderUpload from '../components/upload/BidderUpload';
 import { useEvaluationStore } from '../store/evaluation-store';
@@ -32,47 +27,31 @@ export default function HomePage() {
   const canEvaluate = tender && criteria.length > 0 && bidders.length > 0;
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      <section className="nirnay-card p-8 bg-gradient-to-br from-navy-800 to-navy-700 text-cream-200 border-0">
-        <div className="flex items-start justify-between gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-400/20 text-gold-200 text-xs font-medium mb-3">
-              <Sparkles size={14} /> Powered by Gemini 2.5 + Supabase
-            </div>
-            <h1 className="font-display text-4xl font-semibold leading-tight">
-              Every verdict, with evidence.
-            </h1>
-            <p className="font-mono text-sm text-gold-200 mt-1">निर्णय</p>
-            <p className="mt-4 text-cream-200/80 max-w-xl">
-              Nirnay evaluates government tender bids against extracted eligibility
-              criteria, citing every verdict with the exact source text — not a black
-              box. Hash-chained audit trail, officer override built in.
-            </p>
-            <div className="mt-6 flex items-center gap-3">
-              <Link to="/criteria" className="nirnay-btn-gold">
-                Review Criteria <ArrowRight size={16} />
-              </Link>
-              <Link to="/audit" className="nirnay-btn-ghost text-cream-200 border-cream-200/30">
-                <ShieldCheck size={16} /> Audit Trail
-              </Link>
-            </div>
-          </div>
+    <div className="space-y-8 max-w-6xl mx-auto">
+      <section className="pt-6 pb-2">
+        <p className="label-overline mb-3">PanIIT AI for Bharat · CRPF Procurement</p>
+        <h1 className="font-display text-5xl md:text-6xl font-semibold text-ink tracking-tightest leading-[1.05] max-w-3xl">
+          Every verdict,
+          <br />
+          <span className="font-serif italic font-normal">with evidence.</span>
+        </h1>
+        <p className="mt-5 text-base text-navy-500 max-w-2xl leading-relaxed">
+          Nirnay reads government tenders and bidder submissions, citing every
+          eligibility verdict with the exact source quote — never a black box. Officer
+          override + hash-chained audit trail built in.
+        </p>
 
-          <div className="hidden md:block">
-            <div className="bg-navy-700/60 rounded-lg p-4 border border-navy-600 max-w-xs">
-              <Quote size={20} className="text-gold-400 mb-2" />
-              <p className="text-sm text-cream-200/80 leading-relaxed">
-                "No silent rejections. If we can't find evidence, the verdict is
-                <span className="text-gold-200 font-medium"> needs review</span> — never
-                <span className="text-verdict-not-eligible"> not eligible</span>."
-              </p>
-              <p className="text-[11px] text-cream-300/50 mt-2 font-mono">
-                — Nirnay design principle #1
-              </p>
-            </div>
-          </div>
+        <div className="mt-7 flex flex-wrap items-center gap-3">
+          <Link to="/criteria" className="nirnay-btn-primary">
+            Review Criteria <ArrowRight size={14} />
+          </Link>
+          <Link to="/audit" className="nirnay-btn-ghost">
+            <ShieldCheck size={14} /> Audit Trail
+          </Link>
         </div>
       </section>
+
+      <div className="h-px bg-rule" />
 
       <div className="grid md:grid-cols-2 gap-6">
         <TenderUpload />
@@ -80,16 +59,17 @@ export default function HomePage() {
       </div>
 
       <section className="nirnay-card p-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h3 className="font-display font-semibold text-lg text-navy-800">
-              Pipeline status
-            </h3>
-            <p className="text-sm text-navy-400 mt-1">
+            <p className="label-overline">Pipeline status</p>
+            <p className="text-sm text-navy-500 mt-1.5">
               {tender ? (
                 <>
-                  Tender: <span className="font-mono text-navy-700">{tender.name}</span> ·
-                  {' '}{criteria.length} criteria · {bidders.length} bidder{bidders.length === 1 ? '' : 's'}
+                  Tender: <span className="font-mono text-ink">{tender.name}</span>
+                  <span className="mx-2 text-navy-300">·</span>
+                  {criteria.length} criteria
+                  <span className="mx-2 text-navy-300">·</span>
+                  {bidders.length} bidder{bidders.length === 1 ? '' : 's'}
                 </>
               ) : (
                 'No tender uploaded yet.'
@@ -101,10 +81,38 @@ export default function HomePage() {
             onClick={() => navigate('/evaluation')}
             className="nirnay-btn-primary"
           >
-            Start Evaluation <ArrowRight size={16} />
+            Start Evaluation <ArrowRight size={14} />
           </button>
         </div>
       </section>
+
+      <section className="grid sm:grid-cols-3 gap-3">
+        <Principle
+          n="01"
+          title="Citation on every verdict"
+          body="Every verdict points at the exact source text, document name, and page. No floating numbers."
+        />
+        <Principle
+          n="02"
+          title="Never silently rejects"
+          body="Missing evidence is needs review, never not eligible. Officers see exactly when we don't know."
+        />
+        <Principle
+          n="03"
+          title="Tamper-evident audit"
+          body="SHA-256 hash chain across every action. One click verifies the entire trail end to end."
+        />
+      </section>
+    </div>
+  );
+}
+
+function Principle({ n, title, body }: { n: string; title: string; body: string }) {
+  return (
+    <div className="border border-rule rounded-md p-5 bg-white">
+      <p className="font-mono text-[11px] text-navy-300">{n}</p>
+      <p className="font-display font-semibold text-ink mt-3 tracking-tight">{title}</p>
+      <p className="text-sm text-navy-500 mt-2 leading-relaxed">{body}</p>
     </div>
   );
 }

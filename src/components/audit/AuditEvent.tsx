@@ -3,17 +3,17 @@ import { ChevronRight, ChevronDown, Hash } from 'lucide-react';
 import type { AuditEvent } from '../../types';
 
 const EVENT_COLORS: Record<string, string> = {
-  tender_uploaded: 'bg-blue-100 text-blue-700',
-  criteria_extracted: 'bg-purple-100 text-purple-700',
-  criteria_edited: 'bg-amber-100 text-amber-700',
-  criteria_verified: 'bg-emerald-100 text-emerald-700',
-  bidder_uploaded: 'bg-indigo-100 text-indigo-700',
-  evaluation_started: 'bg-cyan-100 text-cyan-700',
-  evaluation_completed: 'bg-teal-100 text-teal-700',
-  verdict_produced: 'bg-emerald-100 text-emerald-700',
-  verdict_overridden: 'bg-orange-100 text-orange-700',
-  report_generated: 'bg-slate-100 text-slate-700',
-  audit_chain_verified: 'bg-gold-100 text-gold-600',
+  tender_uploaded: 'bg-cream-300 text-ink',
+  criteria_extracted: 'bg-cream-300 text-ink',
+  criteria_edited: 'bg-yellow-50 text-yellow-700',
+  criteria_verified: 'bg-verdict-eligible-bg text-verdict-eligible',
+  bidder_uploaded: 'bg-cream-300 text-ink',
+  evaluation_started: 'bg-cream-300 text-ink',
+  evaluation_completed: 'bg-cream-300 text-ink',
+  verdict_produced: 'bg-verdict-eligible-bg text-verdict-eligible',
+  verdict_overridden: 'bg-yellow-50 text-yellow-700',
+  report_generated: 'bg-cream-300 text-ink',
+  audit_chain_verified: 'bg-cream-300 text-ink',
 };
 
 interface Props {

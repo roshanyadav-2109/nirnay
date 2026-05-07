@@ -56,8 +56,8 @@ export default function CriteriaPage() {
             Extracted from <span className="font-mono">{tender.name}</span>. Review and edit before evaluation.
           </p>
         </div>
-        <button onClick={onVerify} className="nirnay-btn-gold">
-          <ShieldCheck size={16} /> Confirm Criteria <ArrowRight size={14} />
+        <button onClick={onVerify} className="nirnay-btn-primary">
+          <ShieldCheck size={14} /> Confirm Criteria <ArrowRight size={14} />
         </button>
       </div>
 

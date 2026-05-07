@@ -34,28 +34,25 @@ export default function SettingsPage() {
       </div>
 
       <section className="nirnay-card p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-gold-100 text-gold-500 flex items-center justify-center">
-            <KeyRound size={20} />
-          </div>
-          <div>
-            <h3 className="font-display font-semibold text-lg text-navy-800">
-              Gemini API key
-            </h3>
-            <p className="text-xs text-navy-400 mt-0.5 font-mono">
-              Model: {GEMINI_MODEL_ID}
-            </p>
-          </div>
+        <div className="mb-5">
+          <p className="label-overline">API access</p>
+          <h3 className="font-display font-semibold text-lg text-ink mt-1.5 tracking-tight flex items-center gap-2">
+            <KeyRound size={16} strokeWidth={1.75} className="text-navy-400" />
+            Gemini API key
+          </h3>
+          <p className="text-xs text-navy-400 mt-1 font-mono">
+            Model: {GEMINI_MODEL_ID}
+          </p>
         </div>
 
-        <p className="text-sm text-navy-600 mb-3">
+        <p className="text-sm text-navy-500 mb-2">
           Get a free key from Google AI Studio (1500 requests/day on the free tier).
         </p>
         <a
           href="https://aistudio.google.com/apikey"
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-1 text-sm text-gold-500 hover:text-gold-600 mb-4"
+          className="inline-flex items-center gap-1 text-sm text-ink underline underline-offset-4 hover:opacity-70 mb-4"
         >
           aistudio.google.com/apikey <ExternalLink size={12} />
         </a>
@@ -77,8 +74,8 @@ export default function SettingsPage() {
         </div>
 
         <div className="flex gap-2 mt-3">
-          <button onClick={save} className="nirnay-btn-gold">
-            <Check size={16} /> Save
+          <button onClick={save} className="nirnay-btn-primary">
+            <Check size={14} /> Save
           </button>
           <button onClick={clear} className="nirnay-btn-ghost">
             <Trash2 size={14} /> Clear
@@ -87,13 +84,14 @@ export default function SettingsPage() {
       </section>
 
       <section className="nirnay-card p-6">
-        <h3 className="font-display font-semibold text-lg text-navy-800 mb-2">
+        <p className="label-overline">Backend</p>
+        <h3 className="font-display font-semibold text-lg text-ink mt-1.5 tracking-tight">
           Supabase
         </h3>
-        <p className="text-sm text-navy-600">
+        <p className="text-sm text-navy-500 mt-3">
           The demo uses a shared Supabase project. To run on your own infra, copy{' '}
-          <code className="font-mono text-xs bg-cream-300 px-1.5 py-0.5 rounded">.env.example</code>
-          {' '}to <code className="font-mono text-xs bg-cream-300 px-1.5 py-0.5 rounded">.env.local</code>{' '}
+          <code className="font-mono text-xs bg-cream-300 px-1.5 py-0.5 rounded text-ink">.env.example</code>
+          {' '}to <code className="font-mono text-xs bg-cream-300 px-1.5 py-0.5 rounded text-ink">.env.local</code>{' '}
           and set the URL + anon key.
         </p>
       </section>

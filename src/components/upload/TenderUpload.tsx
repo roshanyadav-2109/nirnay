@@ -51,18 +51,15 @@ export default function TenderUpload() {
 
   return (
     <div className="nirnay-card p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-lg bg-gold-100 text-gold-500 flex items-center justify-center">
-          <FileText size={20} />
-        </div>
-        <div>
-          <h3 className="font-display font-semibold text-lg text-navy-800">
-            Upload Tender Document
-          </h3>
-          <p className="text-sm text-navy-400">
-            Single PDF. Gemini reads it natively — no OCR pipeline needed.
-          </p>
-        </div>
+      <div className="mb-5">
+        <p className="label-overline">Step 1</p>
+        <h3 className="font-display font-semibold text-lg text-ink mt-1.5 tracking-tight flex items-center gap-2">
+          <FileText size={16} strokeWidth={1.75} className="text-navy-400" />
+          Upload tender document
+        </h3>
+        <p className="text-sm text-navy-400 mt-1">
+          Single PDF. Gemini reads it natively — no OCR pipeline needed.
+        </p>
       </div>
 
       <div className="space-y-4">
@@ -91,10 +88,10 @@ export default function TenderUpload() {
 
         <div
           {...getRootProps()}
-          className={`border-2 border-dashed rounded-lg px-6 py-10 text-center cursor-pointer transition-colors ${
+          className={`border border-dashed rounded-md px-6 py-9 text-center cursor-pointer transition-colors ${
             isDragActive
-              ? 'border-gold-400 bg-gold-100/40'
-              : 'border-navy-200 hover:border-gold-400 hover:bg-cream-300'
+              ? 'border-ink bg-cream-300'
+              : 'border-rule hover:border-navy-300 hover:bg-cream-200'
           }`}
         >
           <input {...getInputProps()} />
@@ -122,9 +119,9 @@ export default function TenderUpload() {
         <button
           onClick={handleSubmit}
           disabled={busy || !file}
-          className="nirnay-btn-gold w-full"
+          className="nirnay-btn-primary w-full"
         >
-          {busy ? <LoadingSpinner label="Working…" /> : 'Extract Criteria'}
+          {busy ? <LoadingSpinner label="Working…" /> : <>Extract criteria <span className="text-navy-300">→</span></>}
         </button>
       </div>
     </div>

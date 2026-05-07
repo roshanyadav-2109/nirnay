@@ -12,19 +12,19 @@ export default function StatusPill({ status, size = 'md', showIcon = true }: Pro
   const c = verdictColor(status);
   const sizeCls =
     size === 'sm'
-      ? 'text-xs px-2 py-0.5'
+      ? 'text-[11px] px-2 py-0.5'
       : size === 'lg'
-      ? 'text-sm px-3 py-1.5'
-      : 'text-xs px-2.5 py-1';
-  const iconSize = size === 'lg' ? 16 : 12;
+      ? 'text-xs px-2.5 py-1'
+      : 'text-[11px] px-2 py-1';
+  const iconSize = size === 'lg' ? 13 : 11;
   const Icon =
     status === 'eligible' ? Check : status === 'not_eligible' ? X : AlertTriangle;
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-md font-medium ${c.bg} ${c.text} ${sizeCls}`}
+      className={`inline-flex items-center gap-1 rounded-md font-medium ${c.bg} ${c.text} ${sizeCls} border border-current/10`}
     >
-      {showIcon && <Icon size={iconSize} />}
+      {showIcon && <Icon size={iconSize} strokeWidth={2.25} />}
       {c.label}
     </span>
   );

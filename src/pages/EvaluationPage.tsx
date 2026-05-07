@@ -100,9 +100,9 @@ export default function EvaluationPage() {
           <button
             onClick={startEvaluation}
             disabled={isProcessing || !bidders.length}
-            className="nirnay-btn-gold"
+            className="nirnay-btn-primary"
           >
-            {isProcessing ? <LoadingSpinner /> : <><Play size={16} /> Run Evaluation</>}
+            {isProcessing ? <LoadingSpinner /> : <><Play size={14} /> Run Evaluation</>}
           </button>
         </div>
       </div>
@@ -196,10 +196,10 @@ function EvalRow({
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left p-4 rounded-lg border transition-colors ${
+      className={`w-full text-left p-4 rounded-md border transition-colors ${
         isSelected
-          ? 'border-gold-400 bg-gold-100/30'
-          : 'border-cream-400/60 bg-white hover:border-gold-200'
+          ? 'border-ink bg-cream-200'
+          : 'border-rule bg-white hover:border-navy-300'
       }`}
     >
       <div className="flex items-start justify-between gap-3">

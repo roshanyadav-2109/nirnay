@@ -94,8 +94,8 @@ export default function ReportPage() {
             {tender.name} · {bidders.length} bidder(s) × {criteria.length} criteria
           </p>
         </div>
-        <button onClick={handlePrint} className="nirnay-btn-gold">
-          <Printer size={16} /> Export / Print
+        <button onClick={handlePrint} className="nirnay-btn-primary">
+          <Printer size={14} /> Export / Print
         </button>
       </div>
 
@@ -126,8 +126,8 @@ export default function ReportPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="bg-navy-800 text-cream-200">
-                <th className="text-left px-3 py-2 font-display font-semibold sticky left-0 bg-navy-800">
+              <tr className="bg-cream-300 text-ink border-b border-rule">
+                <th className="text-left px-3 py-2 font-display font-semibold sticky left-0 bg-cream-300">
                   Bidder
                 </th>
                 {sortedCriteria.map((c) => (

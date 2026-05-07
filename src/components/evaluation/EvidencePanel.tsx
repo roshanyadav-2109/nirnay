@@ -52,11 +52,9 @@ export default function EvidencePanel({ evaluation, onClose }: Props) {
 
       {evaluation.evidence_text ? (
         <>
-          <p className="text-xs uppercase tracking-wide text-navy-400 mb-1">
-            Source quote
-          </p>
+          <p className="label-overline mb-1.5">Source quote</p>
           <div className="evidence-highlight">
-            <Quote size={14} className="inline -mt-1 mr-1 text-gold-500" />
+            <Quote size={12} className="inline -mt-0.5 mr-1 text-yellow-700" />
             "{evaluation.evidence_text}"
           </div>
           <div className="flex items-center gap-2 mt-2 text-xs text-navy-500 font-mono">
@@ -95,14 +93,12 @@ export default function EvidencePanel({ evaluation, onClose }: Props) {
       )}
 
       {evaluation.human_override && (
-        <div className="mt-3 p-3 rounded bg-gold-100 border border-gold-300">
-          <p className="text-xs font-semibold text-gold-600 uppercase tracking-wide">
-            Human override
-          </p>
-          <p className="text-sm text-navy-700 mt-1">
+        <div className="mt-3 p-3 rounded-md bg-yellow-50 border border-yellow-200">
+          <p className="label-overline text-yellow-700/80">Human override</p>
+          <p className="text-sm text-ink mt-1.5">
             {evaluation.human_override_reason}
           </p>
-          <p className="text-[11px] text-navy-500 mt-1 font-mono">
+          <p className="text-[11px] text-navy-400 mt-1.5 font-mono">
             by {evaluation.human_override_by} ·{' '}
             {evaluation.human_override_at &&
               new Date(evaluation.human_override_at).toLocaleString()}
@@ -138,8 +134,8 @@ export default function EvidencePanel({ evaluation, onClose }: Props) {
               placeholder="e.g. confirmed turnover via supplementary CA certificate"
             />
             <div className="flex gap-2">
-              <button onClick={submit} className="nirnay-btn-gold flex-1">
-                Save Override
+              <button onClick={submit} className="nirnay-btn-primary flex-1">
+                Save override
               </button>
               <button onClick={() => setOverriding(false)} className="nirnay-btn-ghost">
                 Cancel
@@ -148,7 +144,7 @@ export default function EvidencePanel({ evaluation, onClose }: Props) {
           </div>
         ) : (
           <button onClick={() => setOverriding(true)} className="nirnay-btn-ghost w-full">
-            <Edit3 size={14} /> Officer Override
+            <Edit3 size={13} /> Officer override
           </button>
         )}
       </div>

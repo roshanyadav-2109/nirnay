@@ -17,29 +17,31 @@ export default function BidderCard({ bidder, evaluations, selected, onSelect }: 
   return (
     <button
       onClick={onSelect}
-      className={`w-full text-left rounded-lg p-4 transition-all border ${
+      className={`w-full text-left rounded-md p-4 transition-all border ${
         selected
-          ? 'bg-navy-800 text-cream-200 border-navy-800 shadow-card'
-          : 'bg-white border-cream-400/60 hover:border-gold-400 shadow-soft'
+          ? 'bg-ink text-white border-ink'
+          : 'bg-white border-rule hover:border-navy-300'
       }`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-start gap-3 min-w-0 flex-1">
           <div
-            className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-              selected ? 'bg-gold-400 text-navy-800' : 'bg-cream-300 text-navy-500'
+            className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${
+              selected ? 'bg-white/10 text-white' : 'bg-cream-300 text-navy-500'
             }`}
           >
-            <Building2 size={16} />
+            <Building2 size={14} strokeWidth={1.75} />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="font-display font-semibold truncate">{bidder.name}</div>
+            <div className="font-display font-semibold text-sm tracking-tight truncate">
+              {bidder.name}
+            </div>
             <div
-              className={`text-xs flex items-center gap-1 mt-0.5 ${
-                selected ? 'text-cream-200/60' : 'text-navy-400'
+              className={`text-[11px] flex items-center gap-1 mt-0.5 ${
+                selected ? 'text-white/50' : 'text-navy-400'
               }`}
             >
-              <FileText size={11} />
+              <FileText size={10} />
               {bidder.documents.length} document{bidder.documents.length === 1 ? '' : 's'}
             </div>
           </div>
@@ -49,7 +51,7 @@ export default function BidderCard({ bidder, evaluations, selected, onSelect }: 
         ) : (
           <span
             className={`nirnay-badge ${
-              selected ? 'bg-cream-200/20 text-cream-200' : 'bg-cream-300 text-navy-400'
+              selected ? 'bg-white/10 text-white/70' : 'bg-cream-300 text-navy-400'
             }`}
           >
             pending
@@ -59,23 +61,13 @@ export default function BidderCard({ bidder, evaluations, selected, onSelect }: 
 
       {evaluations.length > 0 && (
         <div className="flex items-center gap-3 mt-3 text-[11px] font-mono">
-          <span
-            className={
-              selected ? 'text-verdict-eligible-bg' : 'text-verdict-eligible'
-            }
-          >
+          <span className={selected ? 'text-white/70' : 'text-verdict-eligible'}>
             ✓ {overall.passedCount}
           </span>
-          <span
-            className={
-              selected ? 'text-verdict-not-eligible-bg' : 'text-verdict-not-eligible'
-            }
-          >
+          <span className={selected ? 'text-white/70' : 'text-verdict-not-eligible'}>
             ✗ {overall.failedCount}
           </span>
-          <span
-            className={selected ? 'text-verdict-review-bg' : 'text-verdict-review'}
-          >
+          <span className={selected ? 'text-white/70' : 'text-verdict-review'}>
             ? {overall.reviewCount}
           </span>
         </div>

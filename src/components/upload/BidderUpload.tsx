@@ -52,23 +52,20 @@ export default function BidderUpload() {
 
   return (
     <div className="nirnay-card p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-lg bg-gold-100 text-gold-500 flex items-center justify-center">
-          <Users size={20} />
-        </div>
-        <div>
-          <h3 className="font-display font-semibold text-lg text-navy-800">
-            Upload Bidder Submissions
-          </h3>
-          <p className="text-sm text-navy-400">
-            Each bidder may have multiple documents (PDF, images).
-          </p>
-        </div>
+      <div className="mb-5">
+        <p className="label-overline">Step 2</p>
+        <h3 className="font-display font-semibold text-lg text-ink mt-1.5 tracking-tight flex items-center gap-2">
+          <Users size={16} strokeWidth={1.75} className="text-navy-400" />
+          Upload bidder submissions
+        </h3>
+        <p className="text-sm text-navy-400 mt-1">
+          Each bidder may have multiple documents (PDF, images).
+        </p>
       </div>
 
       {bidders.length > 0 && (
-        <div className="mb-4 p-3 bg-cream-300 rounded-lg text-sm text-navy-600">
-          <strong>{bidders.length} bidder{bidders.length === 1 ? '' : 's'}</strong> already saved for this tender.
+        <div className="mb-4 px-3 py-2 border border-rule rounded-md text-xs text-navy-500 bg-cream-200">
+          <span className="font-medium text-ink">{bidders.length} bidder{bidders.length === 1 ? '' : 's'}</span> already saved for this tender.
         </div>
       )}
 
@@ -142,8 +139,8 @@ function DraftBidderCard({
 
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg px-4 py-6 text-center cursor-pointer transition-colors ${
-          isDragActive ? 'border-gold-400 bg-gold-100/40' : 'border-navy-200 hover:border-gold-400'
+        className={`border border-dashed rounded-md px-4 py-5 text-center cursor-pointer transition-colors ${
+          isDragActive ? 'border-ink bg-cream-300' : 'border-rule hover:border-navy-300 hover:bg-cream-200'
         }`}
       >
         <input {...getInputProps()} />
