@@ -130,8 +130,13 @@ On first launch:
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Open the SQL editor and run [`supabase/migrations/001_initial_schema.sql`](supabase/migrations/001_initial_schema.sql).
-3. Create a Storage bucket called `documents` (public, 50 MB max file size).
+3. Create the Storage bucket either way:
+   - **UI:** Storage → New bucket → name `documents`, **public ON**, 50 MB limit.
+   - **SQL:** run [`supabase/migrations/002_storage_bucket.sql`](supabase/migrations/002_storage_bucket.sql).
 4. Copy your URL + anon key into `.env.local`.
+
+> Common gotcha: if uploads error with **"Bucket not found"**, it's step 3 — the bucket
+> name must be exactly `documents` (lowercase) and the bucket must exist before any upload.
 
 ---
 
