@@ -1,5 +1,7 @@
 import { callGemini, parseJsonResponse } from '../config/gemini';
 import { fileToBase64 } from './pdf-utils';
+import { isDemoMode } from './demo-mode';
+import { getDemoCriteriaForTender } from './demo-cache';
 import type { Criterion, ExtractedCriteria } from '../types';
 
 const CRITERIA_EXTRACTION_PROMPT = `You are an expert Indian government procurement analyst. You are reading a tender document.
@@ -62,7 +64,31 @@ export interface TenderParseResult {
   rawResponse: string;
 }
 
-export async function parseTenderDocument(file: File): Promise<TenderParseResult> {
+export async function parseTenderDocument(
+  file: File,
+  tenderName?: string,
+): Promise<TenderParseResult> {
+  // Demo-mode fast path: if a bundled tender is being uploaded, return the
+  // pre-computed criteria without calling Gemini. Sub-second extraction.
+  if (isDemoMode()) {
+    const cached = getDemoCriteriaForTender(tenderName || file.name, file.name);
+    if (cached) {
+      return {
+        criteria: cached.map((c) => ({
+          criterion_code: c.criterion_code,
+          category: c.category,
+          description: c.description,
+          is_mandatory: c.is_mandatory,
+          rule_type: c.rule_type,
+          parameters: c.parameters,
+          source_text: c.source_text,
+          source_page: c.source_page,
+        })),
+        rawResponse: '[demo mode] cached criteria',
+      };
+    }
+  }
+
   const pdfBase64 = await fileToBase64(file);
   const mimeType = file.type || 'application/pdf';
 

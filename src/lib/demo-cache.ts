@@ -546,6 +546,277 @@ export const HEALTHCARE_DEMO_BIDDERS: CachedBidder[] = [
 // Combined cache that getDemoEvaluationsForBidder() searches.
 const ALL_DEMO_BIDDERS: CachedBidder[] = [...DEMO_BIDDERS, ...HEALTHCARE_DEMO_BIDDERS];
 
+// ---------------------------------------------------------------------------
+// Pre-computed criteria for the two bundled tenders. When Demo mode is ON and
+// the uploaded tender's name / file name matches one of these, the parser
+// returns these criteria instantly (no Gemini call, no 15-25s wait).
+// ---------------------------------------------------------------------------
+
+type DemoCriterion = {
+  criterion_code: string;
+  category: 'financial' | 'technical' | 'compliance' | 'document';
+  description: string;
+  is_mandatory: boolean;
+  rule_type:
+    | 'numeric_threshold'
+    | 'boolean_presence'
+    | 'date_validity'
+    | 'document_required'
+    | 'semantic_match';
+  parameters: Record<string, unknown>;
+  source_text: string;
+  source_page: number;
+};
+
+interface CachedTender {
+  matchKeys: string[];
+  criteria: DemoCriterion[];
+}
+
+const CRPF_CONSTRUCTION_CRITERIA: DemoCriterion[] = [
+  {
+    criterion_code: 'C-1',
+    category: 'financial',
+    description: 'Minimum annual turnover of Rs. 5 Crore in any one of the last three financial years (FY 2022-23, 2023-24, 2024-25).',
+    is_mandatory: true,
+    rule_type: 'numeric_threshold',
+    parameters: { field: 'annual_turnover', operator: '>=', value: 50000000, unit: 'INR' },
+    source_text: 'The bidder shall have a minimum annual turnover of Rs. 5,00,00,000/- (Rupees Five Crore Only) in any one of the last three financial years.',
+    source_page: 2,
+  },
+  {
+    criterion_code: 'C-2',
+    category: 'financial',
+    description: 'Valid solvency certificate from a scheduled commercial bank for amount not less than Rs. 2 Crore.',
+    is_mandatory: true,
+    rule_type: 'numeric_threshold',
+    parameters: { field: 'solvency', operator: '>=', value: 20000000, unit: 'INR', reference_date: 'bid_submission_date' },
+    source_text: 'The bidder shall submit a valid Solvency Certificate from any Scheduled Commercial Bank for an amount NOT LESS THAN Rs. 2,00,00,000/-.',
+    source_page: 2,
+  },
+  {
+    criterion_code: 'C-3',
+    category: 'financial',
+    description: 'Earnest Money Deposit (EMD) of Rs. 16 Lakh submitted as Bank Guarantee or Demand Draft.',
+    is_mandatory: true,
+    rule_type: 'boolean_presence',
+    parameters: { field: 'emd', value: 1600000, unit: 'INR' },
+    source_text: 'The bidder MUST submit Earnest Money Deposit (EMD) of Rs. 16,00,000/- (Rupees Sixteen Lakh Only).',
+    source_page: 2,
+  },
+  {
+    criterion_code: 'C-4',
+    category: 'technical',
+    description: 'Successfully completed at least 3 similar civil construction projects in the last 7 years, each worth Rs. 2 Crore or more, for Government / PSU / Municipal clients.',
+    is_mandatory: true,
+    rule_type: 'semantic_match',
+    parameters: {
+      match_text: 'similar civil construction projects, each value >= 20000000 INR, completed within 7 years, Govt/PSU/Municipal client',
+    },
+    source_text: 'The bidder shall have successfully completed at least three (3) similar civil construction projects in the last seven (7) years, each of value not less than Rs. 2,00,00,000/-.',
+    source_page: 2,
+  },
+  {
+    criterion_code: 'C-5',
+    category: 'technical',
+    description: 'Minimum 5 years of experience in civil construction.',
+    is_mandatory: true,
+    rule_type: 'numeric_threshold',
+    parameters: { field: 'years_of_experience', operator: '>=', value: 5, unit: 'years' },
+    source_text: 'The bidder MUST have a minimum of five (5) years of experience in civil construction.',
+    source_page: 2,
+  },
+  {
+    criterion_code: 'C-6',
+    category: 'compliance',
+    description: 'Active GST registration (GSTIN) on the bid submission date.',
+    is_mandatory: true,
+    rule_type: 'boolean_presence',
+    parameters: { field: 'gstin_active', reference_date: 'bid_submission_date' },
+    source_text: 'The bidder SHALL hold a valid Goods & Services Tax (GST) Registration. GSTIN must be active as on the date of bid submission.',
+    source_page: 3,
+  },
+  {
+    criterion_code: 'C-7',
+    category: 'compliance',
+    description: 'Valid ISO 9001:2015 (QMS) certification from an IAF-accredited body, valid as on the bid submission date.',
+    is_mandatory: true,
+    rule_type: 'date_validity',
+    parameters: { field: 'iso_9001', reference_date: 'bid_submission_date' },
+    source_text: 'The bidder SHALL hold a valid ISO 9001:2015 (Quality Management System) certification, issued by an IAF-accredited certifying body and valid as on the date of bid submission.',
+    source_page: 3,
+  },
+  {
+    criterion_code: 'C-8',
+    category: 'document',
+    description: 'Self-attested copy of the firm/company PAN Card.',
+    is_mandatory: true,
+    rule_type: 'document_required',
+    parameters: { document_name: 'PAN Card' },
+    source_text: 'The bidder SHALL submit a self-attested copy of the Permanent Account Number (PAN) Card of the firm / company.',
+    source_page: 3,
+  },
+  {
+    criterion_code: 'C-9',
+    category: 'compliance',
+    description: 'ISO 14001:2015 (Environmental Management) certification — preferred, carries weightage in technical evaluation.',
+    is_mandatory: false,
+    rule_type: 'boolean_presence',
+    parameters: { field: 'iso_14001' },
+    source_text: 'ISO 14001:2015 (Environmental Management System) certification is DESIRABLE and shall carry weightage in the technical scoring.',
+    source_page: 3,
+  },
+  {
+    criterion_code: 'C-10',
+    category: 'technical',
+    description: 'Prior experience executing construction for paramilitary or armed-forces clients (CRPF / BSF / ITBP / SSB / CISF / IAF / Indian Navy / Indian Army) — preferred.',
+    is_mandatory: false,
+    rule_type: 'semantic_match',
+    parameters: { match_text: 'past projects executed for paramilitary or armed forces' },
+    source_text: 'Prior experience of having executed construction projects for paramilitary forces (CRPF / BSF / ITBP / SSB / CISF) or Indian Armed Forces is ADVANTAGEOUS.',
+    source_page: 3,
+  },
+];
+
+const AIIMS_HEALTHCARE_CRITERIA: DemoCriterion[] = [
+  {
+    criterion_code: 'C-1',
+    category: 'compliance',
+    description: 'Valid CDSCO Manufacturing License (Form MD-9 or MD-5) for "Mechanical Ventilator" under the Medical Devices Rules, 2017. Importer-only registrations (MD-15) acceptable only with OEM authorisation.',
+    is_mandatory: true,
+    rule_type: 'date_validity',
+    parameters: { field: 'cdsco_license', reference_date: 'bid_submission_date' },
+    source_text: 'The bidder SHALL hold a valid CDSCO Manufacturing License under the Medical Devices Rules, 2017 (Form MD-9 or MD-5) for "Mechanical Ventilator".',
+    source_page: 2,
+  },
+  {
+    criterion_code: 'C-2',
+    category: 'compliance',
+    description: 'Valid ISO 13485:2016 (Medical Devices QMS) from an IAF-accredited certifying body, valid as on bid submission date.',
+    is_mandatory: true,
+    rule_type: 'date_validity',
+    parameters: { field: 'iso_13485', reference_date: 'bid_submission_date' },
+    source_text: 'The bidder MUST hold a valid ISO 13485:2016 (Medical Devices Quality Management System) certificate from an IAF-accredited certifying body.',
+    source_page: 2,
+  },
+  {
+    criterion_code: 'C-3',
+    category: 'compliance',
+    description: 'Compliance with IEC 60601-1 and IEC 60601-2-12 (mechanical ventilator electrical safety). NABL-accredited test report mandatory.',
+    is_mandatory: true,
+    rule_type: 'date_validity',
+    parameters: { field: 'iec_60601', reference_date: 'bid_submission_date' },
+    source_text: 'Compliance with IEC 60601-1 (General Requirements for Basic Safety) and IEC 60601-2-12 (Particular Requirements for Lung Ventilators) is mandatory.',
+    source_page: 2,
+  },
+  {
+    criterion_code: 'C-4',
+    category: 'technical',
+    description: 'Minimum 5 years of experience in supply of Class C medical devices.',
+    is_mandatory: true,
+    rule_type: 'numeric_threshold',
+    parameters: { field: 'years_of_experience', operator: '>=', value: 5, unit: 'years' },
+    source_text: 'The bidder MUST have a minimum of five (5) years of experience in supply of Class C medical devices.',
+    source_page: 3,
+  },
+  {
+    criterion_code: 'C-5',
+    category: 'technical',
+    description: 'Successfully supplied at least 3 similar mechanical ventilator orders in last 5 years, each ≥ Rs. 50 Lakh, to Government / PSU / autonomous teaching hospitals.',
+    is_mandatory: true,
+    rule_type: 'semantic_match',
+    parameters: {
+      match_text: 'similar mechanical ventilator supplies, each value >= 5000000 INR, last 5 years, Govt/PSU/teaching hospital client',
+    },
+    source_text: 'The bidder SHALL have successfully supplied at least three (3) similar mechanical ventilator orders in the last five (5) years, each of value not less than Rs. 50,00,000/-.',
+    source_page: 3,
+  },
+  {
+    criterion_code: 'C-6',
+    category: 'financial',
+    description: 'Minimum annual turnover of Rs. 10 Crore in any one of last three financial years (FY 2022-23, 2023-24, 2024-25).',
+    is_mandatory: true,
+    rule_type: 'numeric_threshold',
+    parameters: { field: 'annual_turnover', operator: '>=', value: 100000000, unit: 'INR' },
+    source_text: 'The bidder SHALL have a minimum annual turnover of Rs. 10,00,00,000/- (Rupees Ten Crore Only) in any one of the last three financial years.',
+    source_page: 3,
+  },
+  {
+    criterion_code: 'C-7',
+    category: 'financial',
+    description: 'Positive net worth of at least Rs. 5 Crore as on 31st March 2025, certified by CA with audited balance sheet.',
+    is_mandatory: true,
+    rule_type: 'numeric_threshold',
+    parameters: { field: 'net_worth', operator: '>=', value: 50000000, unit: 'INR', reference_date: '2025-03-31' },
+    source_text: 'The bidder SHALL maintain a positive net worth of at least Rs. 5,00,00,000/- as on 31st March 2025.',
+    source_page: 3,
+  },
+  {
+    criterion_code: 'C-8',
+    category: 'compliance',
+    description: 'Active GST registration (GSTIN) on bid submission date, verifiable on GSTN portal.',
+    is_mandatory: true,
+    rule_type: 'boolean_presence',
+    parameters: { field: 'gstin_active', reference_date: 'bid_submission_date' },
+    source_text: 'The bidder SHALL hold a valid Goods & Services Tax (GST) Registration that is active as on the bid submission date.',
+    source_page: 3,
+  },
+  {
+    criterion_code: 'C-9',
+    category: 'technical',
+    description: 'Authorised service network covering at least 10 cities across India with 24-hour SLA in tier-1 cities and 48-hour elsewhere.',
+    is_mandatory: true,
+    rule_type: 'numeric_threshold',
+    parameters: { field: 'service_cities', operator: '>=', value: 10, unit: 'count' },
+    source_text: 'The bidder MUST have an authorised service network covering at least ten (10) cities across India.',
+    source_page: 3,
+  },
+  {
+    criterion_code: 'C-10',
+    category: 'compliance',
+    description: 'ISO 9001:2015 (QMS) in addition to ISO 13485:2016 — preferred, weightage in technical evaluation.',
+    is_mandatory: false,
+    rule_type: 'boolean_presence',
+    parameters: { field: 'iso_9001' },
+    source_text: 'ISO 9001:2015 (Quality Management System) certification, in addition to ISO 13485:2016, is DESIRABLE.',
+    source_page: 4,
+  },
+  {
+    criterion_code: 'C-11',
+    category: 'compliance',
+    description: 'Local manufacturing under "Make in India" / DPIIT-recognised local content scheme — preferred.',
+    is_mandatory: false,
+    rule_type: 'boolean_presence',
+    parameters: { field: 'make_in_india' },
+    source_text: 'The bidder is encouraged to declare local manufacturing under the "Make in India" / DPIIT-recognised local content scheme.',
+    source_page: 4,
+  },
+];
+
+const DEMO_TENDERS: CachedTender[] = [
+  {
+    matchKeys: ['crpf', 'border outpost', 'construction of', 'mock-tender', 'border'],
+    criteria: CRPF_CONSTRUCTION_CRITERIA,
+  },
+  {
+    matchKeys: ['aiims', 'ventilator', 'healthcare-tender', 'mechanical ventilator', 'ventilators', 'medical equipment'],
+    criteria: AIIMS_HEALTHCARE_CRITERIA,
+  },
+];
+
+export function getDemoCriteriaForTender(
+  tenderName: string,
+  fileName?: string,
+): DemoCriterion[] | null {
+  const target = `${tenderName} ${fileName || ''}`.toLowerCase();
+  for (const t of DEMO_TENDERS) {
+    for (const k of t.matchKeys) {
+      if (target.includes(k.toLowerCase())) return t.criteria;
+    }
+  }
+  return null;
+}
+
 function normalize(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]/g, '');
 }

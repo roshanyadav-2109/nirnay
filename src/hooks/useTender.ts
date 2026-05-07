@@ -68,7 +68,7 @@ export function useTender() {
         });
 
         setPipelineStage('extract', 'active');
-        const { criteria, rawResponse } = await parseTenderDocument(file);
+        const { criteria, rawResponse } = await parseTenderDocument(file, name);
         setPipelineStage('extract', 'done');
 
         setPipelineStage('criteria', 'active');
