@@ -230,6 +230,18 @@ function inrInWords(amount) {
     14300000: 'One Crore Forty Three Lakh',
     15200000: 'One Crore Fifty Two Lakh',
     18000000: 'One Crore Eighty Lakh',
+    22000000: 'Two Crore Twenty Lakh',
+    47000000: 'Forty Seven Lakh',
+    51000000: 'Fifty One Lakh',
+    56000000: 'Fifty Six Lakh',
+    64000000: 'Sixty Four Lakh',
+    68000000: 'Sixty Eight Lakh',
+    78000000: 'Seventy Eight Lakh',
+    92000000: 'Ninety Two Lakh',
+    112000000: 'One Crore Twelve Lakh',
+    120000000: 'Twelve Crore',
+    220000000: 'Twenty Two Crore',
+    2400000: 'Twenty Four Lakh',
     20000000: 'Two Crore',
     25000000: 'Two Crore Fifty Lakh',
     30000000: 'Three Crore',
@@ -1621,10 +1633,1047 @@ const bidders = [
 ];
 
 // ============================================================================
+// HEALTHCARE TENDER (AIIMS — ventilator procurement)
+// ============================================================================
+// Document types unique to medical-device procurement:
+//   - CDSCO Manufacturing License (Form MD-9 issued by Drug Controller General)
+//   - ISO 13485:2016 (Medical Devices QMS — reused via isoCertificate)
+//   - IEC 60601-1 compliance (medical electrical safety — reused via isoCertificate)
+//   - PAN-India service-network statement
+// Reused: cover letter, CA turnover, GST cert, PAN card, supply list, bank guarantee.
+
+function cdscoLicense({ company, licenseNo, issueDate, expiryDate, devices, manufacturingSite }, outPath) {
+  const doc = newDoc();
+  const margin = 48;
+  const w = pageW(doc);
+
+  // Tricolour header band (Govt of India aesthetic)
+  doc.setFillColor(255, 153, 51);
+  doc.rect(0, 0, w, 12, 'F');
+  doc.setFillColor(255, 255, 255);
+  doc.rect(0, 12, w, 12, 'F');
+  doc.setFillColor(19, 136, 8);
+  doc.rect(0, 24, w, 12, 'F');
+
+  let y = 60;
+  ashokSeal(doc, w / 2, y, 'CDSCO');
+  y += 56;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('GOVERNMENT OF INDIA', w / 2, y, { align: 'center' });
+  y += 14;
+  doc.text('MINISTRY OF HEALTH AND FAMILY WELFARE', w / 2, y, { align: 'center' });
+  y += 14;
+  doc.setFontSize(13);
+  doc.text('CENTRAL DRUGS STANDARD CONTROL ORGANISATION', w / 2, y, { align: 'center' });
+  y += 14;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text('Office of the Drugs Controller General (India), FDA Bhawan, New Delhi - 110002', w / 2, y, { align: 'center' });
+  y += 18;
+  drawDoubleRule(doc, y, margin);
+  y += 22;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.text('LICENCE TO MANUFACTURE FOR SALE OR FOR DISTRIBUTION OF', w / 2, y, { align: 'center' });
+  y += 14;
+  doc.text('NOTIFIED MEDICAL DEVICES', w / 2, y, { align: 'center' });
+  y += 14;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text('[Form MD-9 — Medical Devices Rules, 2017]', w / 2, y, { align: 'center' });
+  y += 22;
+
+  doc.setFontSize(10);
+  fieldRow(doc, margin, y, 'License Number:', licenseNo, { valueBold: true });
+  y += 18;
+  fieldRow(doc, margin, y, 'Date of Issue:', issueDate);
+  y += 18;
+  fieldRow(doc, margin, y, 'Date of Expiry:', expiryDate);
+  y += 18;
+  fieldRow(doc, margin, y, 'Manufacturer:', company, { valueBold: true });
+  y += 18;
+  fieldRow(doc, margin, y, 'Manufacturing Site:', manufacturingSite);
+  y += 18;
+  fieldRow(doc, margin, y, 'Device Class:', 'Class C (Moderate-High Risk)');
+  y += 18;
+  fieldRow(doc, margin, y, 'Risk Classification:', 'Per Medical Device Rules, 2017');
+  y += 26;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('Authorised Devices', margin, y);
+  y += 6;
+  hairline(doc, margin, y, w - margin, y);
+  y += 14;
+  doc.setFont('helvetica', 'normal');
+  for (const dev of devices) {
+    doc.text(`• ${dev}`, margin + 12, y);
+    y += 13;
+  }
+  y += 16;
+
+  y = paragraph(
+    doc,
+    margin,
+    y,
+    'The applicant is licensed to manufacture for sale or distribution of the medical devices specified above, subject to compliance with the Medical Devices Rules, 2017, and conditions of the licence. This licence shall remain valid until the date of expiry shown above unless suspended or cancelled.',
+    { fontSize: 9, lineHeight: 13 },
+  );
+
+  y += 28;
+  signatureBlock(doc, margin, y, {
+    name: '(Dr. Rajeev Singh Raghuvanshi)',
+    designation: 'Drugs Controller General (India)',
+    line1: 'Central Licensing Authority',
+    line2: 'Ministry of Health & Family Welfare',
+  });
+
+  rectSeal(doc, w - margin - 130, y - 16, 130, 70, [
+    'CENTRAL DRUGS STANDARD',
+    'CONTROL ORGANISATION',
+    'CENTRAL LICENSING',
+    'AUTHORITY',
+    `${licenseNo}`,
+  ]);
+
+  // Footer — verifiable line
+  doc.setFontSize(8);
+  doc.setTextColor(80, 80, 80);
+  doc.text('Verifiable at https://cdscomdonline.gov.in', w / 2, pageH(doc) - 50, { align: 'center' });
+  doc.setTextColor(0, 0, 0);
+
+  save(doc, outPath);
+}
+
+function serviceNetworkStatement({ company, address, cities, ceoName }, outPath) {
+  const doc = newDoc();
+  const margin = 48;
+  const w = pageW(doc);
+
+  // Company letterhead band (medical blue)
+  doc.setFillColor(0, 95, 134);
+  doc.rect(0, 0, w, 56, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text(company.toUpperCase(), margin, 32);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.text(address, margin, 46);
+  doc.setTextColor(0, 0, 0);
+
+  let y = 90;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text('PAN-INDIA SERVICE NETWORK STATEMENT', w / 2, y, { align: 'center' });
+  y += 16;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text(
+    'Annexure to Technical Bid — In compliance with Eligibility Criterion C-9 (AIIMS Tender)',
+    w / 2,
+    y,
+    { align: 'center' },
+  );
+  y += 24;
+
+  y = paragraph(
+    doc,
+    margin,
+    y,
+    `${company} maintains the following service centres and authorised biomedical engineers across India for installation, training, preventive maintenance and after-sales support of medical equipment supplied:`,
+    { fontSize: 10, lineHeight: 13 },
+  );
+  y += 14;
+
+  y = table(
+    doc,
+    margin,
+    y,
+    [
+      { key: 'sn', label: 'Sl', w: 26 },
+      { key: 'city', label: 'City', w: 110 },
+      { key: 'state', label: 'State', w: 110 },
+      { key: 'engineers', label: 'Biomed Engineers', w: 100 },
+      { key: 'response', label: 'Response SLA', w: 100 },
+    ],
+    cities.map((c, i) => ({
+      sn: i + 1,
+      city: c.city,
+      state: c.state,
+      engineers: String(c.engineers),
+      response: c.response,
+    })),
+    { rowH: 18, headerBg: [220, 232, 240] },
+  );
+  y += 14;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text(`Total cities covered: ${cities.length}`, margin, y);
+  y += 14;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text(
+    `Total biomedical engineers on payroll: ${cities.reduce((a, c) => a + c.engineers, 0)}`,
+    margin,
+    y,
+  );
+  y += 22;
+
+  y = paragraph(
+    doc,
+    margin,
+    y,
+    'We undertake to provide on-site response within the Service Level Agreement (SLA) timelines specified above, 24×7 telephonic support, mandatory annual preventive maintenance, and emergency replacement of critical spares from our regional stocking depots.',
+    { fontSize: 9, lineHeight: 13 },
+  );
+
+  y += 24;
+  signatureBlock(doc, margin, y, {
+    name: ceoName,
+    designation: 'For ' + company,
+    line1: 'Authorised Signatory',
+    line2: `Date: ${BID_DATE}`,
+  });
+  rectSeal(doc, w - margin - 130, y - 16, 130, 64, [
+    company.toUpperCase(),
+    'AUTHORISED SIGNATORY',
+    'COMPANY SEAL',
+  ], [0, 95, 134]);
+
+  save(doc, outPath);
+}
+
+function generateHealthcareTender() {
+  const doc = newDoc();
+  const margin = 48;
+  const w = pageW(doc);
+
+  // Letterhead — AIIMS
+  ashokSeal(doc, w / 2, margin + 30, 'AIIMS');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(40, 40, 40);
+  doc.text('GOVERNMENT OF INDIA', w / 2, margin + 78, { align: 'center' });
+  doc.setFontSize(10);
+  doc.text('MINISTRY OF HEALTH AND FAMILY WELFARE', w / 2, margin + 92, { align: 'center' });
+  doc.setFontSize(13);
+  doc.text('ALL INDIA INSTITUTE OF MEDICAL SCIENCES', w / 2, margin + 108, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text('Ansari Nagar, New Delhi - 110029', w / 2, margin + 122, { align: 'center' });
+  doc.setFontSize(8);
+  doc.setTextColor(80, 80, 80);
+  doc.text(
+    'Tel: 011-26588500   |   Fax: 011-26588641   |   www.aiims.edu   |   eprocure.gov.in',
+    w / 2,
+    margin + 134,
+    { align: 'center' },
+  );
+  doc.setTextColor(0, 0, 0);
+
+  drawDoubleRule(doc, margin + 146, margin);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.text('NOTICE INVITING TENDER (e-Procurement)', w / 2, margin + 172, { align: 'center' });
+  doc.setFontSize(10);
+  doc.text('[Stores Procurement, Department of Anaesthesiology and Critical Care]', w / 2, margin + 186, { align: 'center' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text('F.No. AIIMS/STORES/MED-EQ/2026/04-094', margin, margin + 212);
+  doc.text('Dated: 01-04-2026', w - margin, margin + 212, { align: 'right' });
+
+  let y = margin + 236;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text(
+    'Name of Work : Supply, Installation, Commissioning & Training for',
+    margin,
+    y,
+  );
+  y += 14;
+  doc.text('50 (Fifty) Adult Mechanical Ventilators with 5-year CMC', margin, y);
+  y += 14;
+  doc.text('for the Trauma Centre and ICU, AIIMS New Delhi', margin, y);
+  y += 22;
+
+  doc.setFont('helvetica', 'normal');
+  y = table(
+    doc,
+    margin,
+    y,
+    [
+      { key: 'k', label: 'Particulars', w: 240 },
+      { key: 'v', label: 'Details', w: pageW(doc) - margin * 2 - 240 },
+    ],
+    [
+      { k: 'Tender Reference No.', v: 'AIIMS/MED-EQ/2026/VENT/094' },
+      { k: 'Estimated Cost (incl. GST)', v: `${rs(120000000)} (Rupees Twelve Crore Only)` },
+      { k: 'Earnest Money Deposit (EMD)', v: `${rs(2400000)} (Rupees Twenty Four Lakh Only)` },
+      { k: 'Tender Fee (Non-refundable)', v: 'Rs. 10,000/-' },
+      { k: 'Period of Supply & Installation', v: '120 days from date of award' },
+      { k: 'Comprehensive Maintenance Contract', v: '5 years from acceptance' },
+      { k: 'Pre-bid Meeting', v: '08-04-2026, 10:30 hrs IST, Stores AIIMS' },
+      { k: 'Last Date for Bid Submission', v: `${BID_DATE}, 14:00 hrs IST` },
+      { k: 'Date of Technical Bid Opening', v: '17-04-2026, 11:00 hrs IST' },
+      { k: 'Bid Validity', v: '180 days from technical bid opening' },
+    ],
+    { headerBg: [232, 232, 224] },
+  );
+
+  y += 18;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('SECTION 4 — MINIMUM ELIGIBILITY CRITERIA', margin, y);
+  y += 5;
+  hairline(doc, margin, y, w - margin, y);
+  y += 12;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  y = paragraph(
+    doc,
+    margin,
+    y,
+    'The bidder must be the OEM (Original Equipment Manufacturer) or its authorised channel partner. All criteria are mandatory unless explicitly marked as preferred. AIIMS reserves the right to verify any document directly with the issuing authority.',
+  );
+  y += 6;
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('4.1  Regulatory Compliance', margin, y);
+  y += 14;
+  doc.setFont('helvetica', 'normal');
+  y = paragraph(
+    doc,
+    margin,
+    y,
+    'C-1.  The bidder SHALL hold a valid CDSCO Manufacturing License under the Medical Devices Rules, 2017 (Form MD-9 or MD-5) for "Mechanical Ventilator". Importer-only registrations (MD-15) are also acceptable provided OEM authorisation is enclosed.',
+  );
+  y += 4;
+  y = paragraph(
+    doc,
+    margin,
+    y,
+    'C-2.  The bidder MUST hold a valid ISO 13485:2016 (Medical Devices Quality Management System) certificate from an IAF-accredited certifying body, valid as on the bid submission date.',
+  );
+  y += 4;
+  y = paragraph(
+    doc,
+    margin,
+    y,
+    'C-3.  Compliance with IEC 60601-1 (General Requirements for Basic Safety) and IEC 60601-2-12 (Particular Requirements for Lung Ventilators) is mandatory. BIS / ETDC test reports from an NABL-accredited lab shall be enclosed.',
+  );
+  y += 8;
+
+  if (y > pageH(doc) - 200) {
+    doc.addPage();
+    y = margin;
+  }
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('4.2  Experience and Past Supply', margin, y);
+  y += 14;
+  doc.setFont('helvetica', 'normal');
+  y = paragraph(
+    doc,
+    margin,
+    y,
+    'C-4.  The bidder MUST have a minimum of five (5) years of experience in supply of Class C medical devices. Date of incorporation under Companies Act / firm registration shall be the reference.',
+  );
+  y += 4;
+  y = paragraph(
+    doc,
+    margin,
+    y,
+    'C-5.  The bidder SHALL have successfully supplied at least three (3) similar mechanical ventilator orders in the last five (5) years, each of value not less than Rs. 50,00,000/- (Rupees Fifty Lakh) to Government / PSU / autonomous teaching hospitals. Completion or installation certificates are mandatory.',
+  );
+  y += 8;
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('4.3  Financial Eligibility', margin, y);
+  y += 14;
+  doc.setFont('helvetica', 'normal');
+  y = paragraph(
+    doc,
+    margin,
+    y,
+    'C-6.  The bidder SHALL have a minimum annual turnover of Rs. 10,00,00,000/- (Rupees Ten Crore Only) in any one of the last three financial years (FY 2022-23 / 2023-24 / 2024-25), certified by a practising Chartered Accountant with UDIN.',
+  );
+  y += 4;
+  y = paragraph(
+    doc,
+    margin,
+    y,
+    'C-7.  The bidder SHALL maintain a positive net worth of at least Rs. 5,00,00,000/- (Rupees Five Crore Only) as on 31st March 2025, certified by a CA along with the latest audited balance sheet.',
+  );
+  y += 8;
+
+  if (y > pageH(doc) - 200) {
+    doc.addPage();
+    y = margin;
+  }
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('4.4  Statutory Documentation', margin, y);
+  y += 14;
+  doc.setFont('helvetica', 'normal');
+  y = paragraph(
+    doc,
+    margin,
+    y,
+    'C-8.  The bidder SHALL hold a valid Goods & Services Tax (GST) Registration that is active as on the bid submission date, verifiable on the GSTN portal.',
+  );
+  y += 8;
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('4.5  After-Sales & Service Network', margin, y);
+  y += 14;
+  doc.setFont('helvetica', 'normal');
+  y = paragraph(
+    doc,
+    margin,
+    y,
+    'C-9.  The bidder MUST have an authorised service network covering at least ten (10) cities across India, with on-site response time of not more than 24 hours for tier-1 cities (Delhi, Mumbai, Chennai, Kolkata, Bengaluru) and 48 hours elsewhere. A self-attested service network statement listing cities, biomedical engineers, and SLA shall be enclosed.',
+  );
+  y += 8;
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('4.6  Preferred (Non-Mandatory) Criteria', margin, y);
+  y += 14;
+  doc.setFont('helvetica', 'normal');
+  y = paragraph(
+    doc,
+    margin,
+    y,
+    'C-10. ISO 9001:2015 (Quality Management System) certification, in addition to ISO 13485:2016, is DESIRABLE and shall carry weightage in the technical evaluation.',
+  );
+  y += 4;
+  y = paragraph(
+    doc,
+    margin,
+    y,
+    'C-11. The bidder is encouraged to declare local manufacturing under the "Make in India" / DPIIT-recognised local content scheme. Local Content (LC) percentage shall be self-certified per Public Procurement (Preference to Make in India) Order, 2017.',
+  );
+
+  if (y > pageH(doc) - 180) {
+    doc.addPage();
+    y = margin;
+  } else {
+    y += 24;
+  }
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('DECLARATION', margin, y);
+  y += 14;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  y = paragraph(
+    doc,
+    margin,
+    y,
+    'AIIMS reserves the right to reject any or all bids without assigning any reason and to relax the criteria in the interest of public service in accordance with the General Financial Rules, 2017 and the Manual for Procurement of Goods, 2022. Conditional bids are liable to rejection.',
+    { fontSize: 9, lineHeight: 12 },
+  );
+
+  y += 30;
+  signatureBlock(doc, margin, y, {
+    name: '(Dr. M. Srinivas)',
+    designation: 'Director',
+    line1: 'All India Institute of Medical Sciences, New Delhi',
+    line2: 'For and on behalf of President of India',
+  });
+  rectSeal(doc, w - margin - 110, y - 10, 110, 56, [
+    'OFFICE OF THE',
+    'DIRECTOR',
+    'AIIMS NEW DELHI',
+    'STORES SECTION',
+  ]);
+
+  const pages = doc.internal.pages.length - 1;
+  for (let p = 1; p <= pages; p++) {
+    doc.setPage(p);
+    watermark(doc, 'GOVT OF INDIA');
+  }
+
+  save(doc, join(OUT, 'healthcare-tender.pdf'));
+}
+
+// ----------------- Healthcare bidder data -----------------
+
+function healthcareDir(slug) {
+  const d = join(OUT, 'healthcare-bidders', slug);
+  if (!existsSync(d)) mkdirSync(d, { recursive: true });
+  return d;
+}
+
+const healthcareBidders = [
+  // ---- HB-01: MediTech Systems (eligible) ----
+  {
+    slug: 'bidder-01-meditech-systems',
+    company: 'MediTech Systems Pvt Ltd',
+    address: 'Plot 17, Sector 4, IMT Manesar, Gurugram, Haryana - 122051',
+    pan: 'AAACM4421T',
+    gstin: '06AAACM4421T1Z9',
+    legalName: 'MediTech Systems Private Limited',
+    dateOfRegistration: '15-04-2014',
+    gstStatus: 'ACTIVE — verified on 12-04-2026',
+    incDate: '15-04-2014',
+    ceo: { name: 'Dr. Sanjay Krishnan', designation: 'Managing Director' },
+    coverBody: [
+      'We are pleased to submit our technical and financial bid for the supply, installation and commissioning of 50 adult mechanical ventilators for AIIMS New Delhi (Tender Ref: AIIMS/MED-EQ/2026/VENT/094).',
+      'MediTech Systems was incorporated in April 2014 and has, over the past 12 years, supplied medical equipment to over 240 government hospitals including AIIMS Bhubaneswar, AIIMS Patna, PGIMER Chandigarh, JIPMER Puducherry and several state-level government hospitals. Our flagship MTV-720 ventilator is BIS-certified, CE marked, and IEC 60601 compliant.',
+      'We confirm full compliance with all eligibility criteria, including a valid CDSCO Manufacturing License (Form MD-9, MFG/MD/2024/0091) for Mechanical Ventilator (Class C), ISO 13485:2016 certification from TUV India, and a PAN-India service network covering 22 cities with 84 biomedical engineers on payroll.',
+      'EMD of Rs. 24,00,000/- (Rupees Twenty Four Lakh Only) is enclosed via HDFC Bank Guarantee BG/2026/04/0871 dated 03-04-2026. All supporting documents are attached as Annexures 1 to 9.',
+    ],
+    ca: {
+      caFirm: 'Krishnan Iyer & Co.',
+      caName: 'CA Lakshmi Krishnan',
+      caRegNo: '023411S',
+      udin: '24023411LKHCMD2024',
+      turnovers: [
+        { fy: 'FY 2024-25', amount: 152000000 },
+        { fy: 'FY 2023-24', amount: 124000000 },
+        { fy: 'FY 2022-23', amount: 98000000 },
+      ],
+      place: 'Gurugram',
+      date: '20-03-2026',
+    },
+    cdsco: {
+      licenseNo: 'MFG/MD/2024/0091',
+      issueDate: '15-06-2024',
+      expiryDate: '14-06-2029',
+      devices: [
+        'Adult Mechanical Ventilator (Class C)',
+        'Neonatal Mechanical Ventilator (Class C)',
+        'Patient Monitor with ECG/SpO2/NIBP (Class B)',
+      ],
+      manufacturingSite: 'Plot 17, Sector 4, IMT Manesar, Gurugram, Haryana',
+    },
+    iso13485: {
+      certifyingBody: 'TUV India Pvt Ltd',
+      certNo: 'TUV-IN-2024-13485-22311',
+      scope:
+        'Design, development, manufacture, installation and servicing of mechanical ventilators, patient monitors and critical-care medical devices.',
+      issueDate: '01-07-2024',
+      expiryDate: '30-06-2027',
+      originalDate: '01-07-2018',
+      standard: 'ISO 13485:2016',
+    },
+    iec60601: {
+      certifyingBody: 'Electronics Test & Development Centre (ETDC)',
+      certNo: 'ETDC-IEC-60601-2024-1188',
+      scope:
+        'Compliance with IEC 60601-1 (General requirements for basic safety) and IEC 60601-2-12 (Particular requirements for lung ventilators) for the MTV-720 adult ventilator.',
+      issueDate: '12-09-2024',
+      expiryDate: '11-09-2027',
+      originalDate: '12-09-2024',
+      standard: 'IEC 60601-1 / 60601-2-12',
+    },
+    iso9001: {
+      certifyingBody: 'TUV India Pvt Ltd',
+      certNo: 'TUV-IN-2024-90001-44199',
+      scope: 'Design, development, manufacture and servicing of medical devices.',
+      issueDate: '01-07-2024',
+      expiryDate: '30-06-2027',
+      originalDate: '01-07-2014',
+      standard: 'ISO 9001:2015',
+    },
+    serviceNetwork: {
+      cities: [
+        { city: 'New Delhi', state: 'Delhi', engineers: 14, response: '4 hr' },
+        { city: 'Mumbai', state: 'Maharashtra', engineers: 9, response: '4 hr' },
+        { city: 'Bengaluru', state: 'Karnataka', engineers: 7, response: '6 hr' },
+        { city: 'Chennai', state: 'Tamil Nadu', engineers: 6, response: '6 hr' },
+        { city: 'Kolkata', state: 'West Bengal', engineers: 5, response: '8 hr' },
+        { city: 'Hyderabad', state: 'Telangana', engineers: 5, response: '8 hr' },
+        { city: 'Pune', state: 'Maharashtra', engineers: 4, response: '8 hr' },
+        { city: 'Ahmedabad', state: 'Gujarat', engineers: 4, response: '12 hr' },
+        { city: 'Lucknow', state: 'Uttar Pradesh', engineers: 4, response: '12 hr' },
+        { city: 'Patna', state: 'Bihar', engineers: 3, response: '24 hr' },
+        { city: 'Bhubaneswar', state: 'Odisha', engineers: 3, response: '24 hr' },
+        { city: 'Chandigarh', state: 'Chandigarh UT', engineers: 3, response: '12 hr' },
+        { city: 'Jaipur', state: 'Rajasthan', engineers: 3, response: '12 hr' },
+        { city: 'Guwahati', state: 'Assam', engineers: 3, response: '24 hr' },
+        { city: 'Trivandrum', state: 'Kerala', engineers: 3, response: '24 hr' },
+        { city: 'Dehradun', state: 'Uttarakhand', engineers: 2, response: '24 hr' },
+        { city: 'Indore', state: 'Madhya Pradesh', engineers: 3, response: '24 hr' },
+        { city: 'Raipur', state: 'Chhattisgarh', engineers: 2, response: '24 hr' },
+        { city: 'Ranchi', state: 'Jharkhand', engineers: 2, response: '24 hr' },
+        { city: 'Visakhapatnam', state: 'Andhra Pradesh', engineers: 2, response: '24 hr' },
+        { city: 'Srinagar', state: 'J&K', engineers: 1, response: '48 hr' },
+        { city: 'Imphal', state: 'Manipur', engineers: 1, response: '48 hr' },
+      ],
+    },
+    projects: [
+      { name: 'AIIMS Bhubaneswar — 25 Adult Ventilators', value: 6500000, client: 'AIIMS Bhubaneswar', completed: '15-09-2024' },
+      { name: 'PGIMER Chandigarh — 18 ICU Ventilators', value: 5400000, client: 'PGIMER, Chandigarh', completed: '20-03-2024' },
+      { name: 'JIPMER Puducherry — 30 Adult Ventilators', value: 7800000, client: 'JIPMER', completed: '12-11-2023' },
+      { name: 'Tata Memorial Hospital — 12 Anaesthesia Ventilators', value: 4200000, client: 'TMH Mumbai', completed: '08-06-2023' },
+      { name: 'AIIMS Patna — 20 Adult Ventilators', value: 5200000, client: 'AIIMS Patna', completed: '14-02-2022' },
+    ],
+    bg: {
+      bankName: 'HDFC Bank',
+      branch: 'IMT Manesar',
+      bgNo: 'HDFC/BG/2026/04/0871',
+      amount: 2400000,
+      issueDate: '03-04-2026',
+      validity: '210 days',
+    },
+  },
+
+  // ---- HB-02: Lifeline Healthcare Solutions (not_eligible — no CDSCO license, only importer registration without OEM authorisation) ----
+  {
+    slug: 'bidder-02-lifeline-healthcare',
+    company: 'Lifeline Healthcare Solutions',
+    address: 'Building 4, Phase III, Okhla Industrial Area, New Delhi - 110020',
+    pan: 'AAFFL5511P',
+    gstin: '07AAFFL5511P1ZN',
+    legalName: 'Lifeline Healthcare Solutions',
+    dateOfRegistration: '20-06-2019',
+    gstStatus: 'ACTIVE',
+    incDate: '20-06-2019',
+    ceo: { name: 'Mr. Pankaj Verma', designation: 'Proprietor' },
+    coverBody: [
+      'We submit our bid for the captioned tender. Lifeline Healthcare Solutions is an authorised distributor of imported medical equipment, established in June 2019 (~7 years).',
+      'We are NOT a manufacturer; we operate as an authorised distributor. CDSCO Form MD-15 (Importer Registration) is enclosed. OEM authorisation letter is being sought from the manufacturer and shall be submitted as soon as available.',
+      'EMD of Rs. 24,00,000/- is enclosed via Bank Guarantee.',
+    ],
+    ca: {
+      caFirm: 'Sehgal Verma & Associates',
+      caName: 'CA Ankit Sehgal',
+      caRegNo: '116622N',
+      udin: '24116622SVHTRN8800',
+      turnovers: [
+        { fy: 'FY 2024-25', amount: 72000000 },
+        { fy: 'FY 2023-24', amount: 64000000 },
+        { fy: 'FY 2022-23', amount: 51000000 },
+      ],
+      place: 'New Delhi',
+      date: '18-03-2026',
+    },
+    cdsco: null, // KEY: no manufacturing license
+    iso13485: {
+      certifyingBody: 'Intertek Certification India',
+      certNo: 'INT-13485-2024-09127',
+      scope:
+        'Distribution and after-sales service of imported medical devices.',
+      issueDate: '01-08-2024',
+      expiryDate: '31-07-2027',
+      originalDate: '01-08-2021',
+      standard: 'ISO 13485:2016',
+    },
+    iec60601: null, // KEY: no IEC compliance test report (relies on imported OEM compliance)
+    serviceNetwork: {
+      cities: [
+        { city: 'New Delhi', state: 'Delhi', engineers: 5, response: '8 hr' },
+        { city: 'Mumbai', state: 'Maharashtra', engineers: 3, response: '12 hr' },
+        { city: 'Bengaluru', state: 'Karnataka', engineers: 2, response: '24 hr' },
+        { city: 'Chennai', state: 'Tamil Nadu', engineers: 2, response: '24 hr' },
+        { city: 'Hyderabad', state: 'Telangana', engineers: 2, response: '24 hr' },
+        { city: 'Kolkata', state: 'West Bengal', engineers: 2, response: '48 hr' },
+        { city: 'Ahmedabad', state: 'Gujarat', engineers: 2, response: '48 hr' },
+      ],
+    },
+    projects: [
+      { name: 'Govt Medical College Indore — 8 ventilators (imported)', value: 3200000, client: 'GMC Indore', completed: '12-01-2024' },
+      { name: 'Safdarjung Hospital — 6 patient monitors', value: 1800000, client: 'Safdarjung Delhi', completed: '04-06-2023' },
+      { name: 'ESIC Hospital Delhi — 10 syringe pumps', value: 950000, client: 'ESIC Delhi', completed: '20-09-2022' },
+    ],
+    bg: {
+      bankName: 'Punjab National Bank',
+      branch: 'Okhla',
+      bgNo: 'PNB/BG/2026/04/2241',
+      amount: 2400000,
+      issueDate: '07-04-2026',
+      validity: '210 days',
+    },
+  },
+
+  // ---- HB-03: Pinnacle Medical Devices (needs_review — CDSCO renewal pending, FY audit incomplete) ----
+  {
+    slug: 'bidder-03-pinnacle-medical-devices',
+    company: 'Pinnacle Medical Devices',
+    address: '47, Electronic City Phase 2, Hosur Road, Bengaluru - 560100',
+    pan: 'AAACP9982R',
+    gstin: '29AAACP9982R1ZQ',
+    legalName: 'Pinnacle Medical Devices Pvt Ltd',
+    dateOfRegistration: '12-08-2018',
+    gstStatus: 'ACTIVE',
+    incDate: '12-08-2018',
+    ceo: { name: 'Dr. Anita Rao', designation: 'CEO' },
+    coverBody: [
+      'We submit our bid for the AIIMS ventilator tender. Pinnacle Medical Devices is incorporated in August 2018 (~7 years 8 months).',
+      'NOTE: Our CDSCO Manufacturing License (MFG/MD/2021/0334) was valid until 11-04-2026. Renewal application has been filed with CDSCO and the new license is expected within 30 days. The current license expired four (4) days before the bid submission date. We respectfully request consideration of this as substantive compliance pending renewal.',
+      'NOTE: FY 2024-25 audit is in progress; turnover figure of Rs. 11.2 Cr is provisional pending audit. Audited financials shall be submitted to AIIMS within 30 days of bid opening.',
+    ],
+    ca: {
+      caFirm: 'Rao Subramanian & Co.',
+      caName: 'CA Vikram Subramanian',
+      caRegNo: '042001S',
+      udin: '24042001VSCPMD3344',
+      turnovers: [
+        { fy: 'FY 2024-25 (Provisional)', amount: 112000000 },
+        { fy: 'FY 2023-24', amount: 92000000 },
+        { fy: 'FY 2022-23', amount: 78000000 },
+      ],
+      place: 'Bengaluru',
+      date: '15-03-2026',
+    },
+    cdsco: {
+      licenseNo: 'MFG/MD/2021/0334',
+      issueDate: '12-04-2021',
+      expiryDate: '11-04-2026', // expired BEFORE bid date 15-04-2026
+      devices: [
+        'Adult Mechanical Ventilator (Class C)',
+      ],
+      manufacturingSite: '47, Electronic City Phase 2, Bengaluru, Karnataka',
+      note: 'NOTE: This license expired on 11-04-2026, four days before the bid submission. Renewal application is in process.',
+    },
+    iso13485: {
+      certifyingBody: 'DNV-GL India',
+      certNo: 'DNV-13485-2023-09812',
+      scope: 'Manufacture of mechanical ventilators and respiratory care devices.',
+      issueDate: '20-08-2023',
+      expiryDate: '19-08-2026',
+      originalDate: '20-08-2020',
+      standard: 'ISO 13485:2016',
+    },
+    iec60601: {
+      certifyingBody: 'NABL-Accredited Lab — Underwriters Laboratories India',
+      certNo: 'UL-IND-IEC-60601-2023-2298',
+      scope: 'IEC 60601-1 and 60601-2-12 compliance for the PMD-V100 ventilator.',
+      issueDate: '04-04-2023',
+      expiryDate: '03-04-2026', // ALSO recently expired
+      originalDate: '04-04-2023',
+      standard: 'IEC 60601-1 / 60601-2-12',
+      note:
+        'NOTE: This compliance test report expired 12 days prior to bid submission. Re-testing has been booked at the same lab.',
+    },
+    serviceNetwork: {
+      cities: [
+        { city: 'Bengaluru', state: 'Karnataka', engineers: 8, response: '4 hr' },
+        { city: 'Chennai', state: 'Tamil Nadu', engineers: 4, response: '8 hr' },
+        { city: 'Hyderabad', state: 'Telangana', engineers: 4, response: '8 hr' },
+        { city: 'Kochi', state: 'Kerala', engineers: 3, response: '12 hr' },
+        { city: 'Mumbai', state: 'Maharashtra', engineers: 3, response: '12 hr' },
+        { city: 'Pune', state: 'Maharashtra', engineers: 2, response: '24 hr' },
+        { city: 'Coimbatore', state: 'Tamil Nadu', engineers: 2, response: '24 hr' },
+        { city: 'Vijayawada', state: 'Andhra Pradesh', engineers: 2, response: '24 hr' },
+        { city: 'Trivandrum', state: 'Kerala', engineers: 2, response: '24 hr' },
+        { city: 'New Delhi', state: 'Delhi', engineers: 2, response: '24 hr' },
+        { city: 'Ahmedabad', state: 'Gujarat', engineers: 2, response: '24 hr' },
+      ],
+    },
+    projects: [
+      { name: 'AIIMS Bhopal — 12 Adult Ventilators', value: 5800000, client: 'AIIMS Bhopal', completed: '15-11-2024' },
+      { name: 'NIMHANS Bengaluru — 8 Adult Ventilators', value: 3400000, client: 'NIMHANS', completed: '08-04-2023' },
+      { name: 'KMC Manipal — 6 Adult Ventilators', value: 2800000, client: 'KMC Manipal Hospital', completed: '20-09-2021' },
+    ],
+    bg: {
+      bankName: 'Canara Bank',
+      branch: 'Electronic City',
+      bgNo: 'CAN/BG/2026/04/0671',
+      amount: 2400000,
+      issueDate: '08-04-2026',
+      validity: '210 days',
+    },
+  },
+
+  // ---- HB-04: Jeevan Bio-Medical (eligible) ----
+  {
+    slug: 'bidder-04-jeevan-bio-medical',
+    company: 'Jeevan Bio-Medical Pvt Ltd',
+    address: 'A-21 MIDC Andheri East, Mumbai - 400093',
+    pan: 'AAACJ7711K',
+    gstin: '27AAACJ7711K1ZP',
+    legalName: 'Jeevan Bio-Medical Private Limited',
+    dateOfRegistration: '08-11-2010',
+    gstStatus: 'ACTIVE',
+    incDate: '08-11-2010',
+    ceo: { name: 'Mr. Rohan Joshi', designation: 'Chief Executive Officer' },
+    coverBody: [
+      'Jeevan Bio-Medical, established in November 2010 (15 years), submits this bid for the AIIMS ventilator tender. We are an OEM with manufacturing facilities in Mumbai and Hyderabad.',
+      'Our flagship JBM-Vent-Pro ventilator is supplied to over 300 hospitals across India and exported to 12 countries. We hold valid CDSCO Form MD-9 manufacturing license, ISO 13485:2016, IEC 60601 compliance via NABL-accredited testing, and ISO 9001:2015.',
+      'Our PAN-India service network covers 28 cities with 110+ certified biomedical engineers. Audited turnover for FY 2024-25 is Rs. 22 Crore. Net worth as on 31-03-2025 is Rs. 8.4 Crore.',
+      'We are also a DPIIT-registered Class-I local supplier under Make in India with 78% local content for the JBM-Vent-Pro.',
+    ],
+    ca: {
+      caFirm: 'Joshi Patel & Co.',
+      caName: 'CA Hetal Patel',
+      caRegNo: '098112W',
+      udin: '24098112HPJBPV9911',
+      turnovers: [
+        { fy: 'FY 2024-25', amount: 220000000 },
+        { fy: 'FY 2023-24', amount: 180000000 },
+        { fy: 'FY 2022-23', amount: 143000000 },
+      ],
+      place: 'Mumbai',
+      date: '22-03-2026',
+    },
+    cdsco: {
+      licenseNo: 'MFG/MD/2023/0188',
+      issueDate: '20-03-2023',
+      expiryDate: '19-03-2028',
+      devices: [
+        'Adult Mechanical Ventilator (Class C)',
+        'Anaesthesia Workstation (Class C)',
+        'Defibrillator (Class C)',
+        'Patient Monitor (Class B)',
+        'Infant Incubator (Class B)',
+      ],
+      manufacturingSite: 'A-21 MIDC Andheri East, Mumbai (Plant 1) and Plot 88 IDA Hyderabad (Plant 2)',
+    },
+    iso13485: {
+      certifyingBody: 'Bureau Veritas Certification India',
+      certNo: 'BV-IN-2024-13485-66102',
+      scope:
+        'Design, development, manufacture, installation and servicing of mechanical ventilators, anaesthesia workstations, patient monitors and critical-care medical devices.',
+      issueDate: '15-05-2024',
+      expiryDate: '14-05-2027',
+      originalDate: '15-05-2015',
+      standard: 'ISO 13485:2016',
+    },
+    iec60601: {
+      certifyingBody: 'STQC (Standardisation, Testing and Quality Certification) — NABL-accredited',
+      certNo: 'STQC-IEC-60601-2024-3322',
+      scope:
+        'Compliance with IEC 60601-1 and IEC 60601-2-12 for the JBM-Vent-Pro adult ventilator.',
+      issueDate: '20-08-2024',
+      expiryDate: '19-08-2027',
+      originalDate: '15-04-2018',
+      standard: 'IEC 60601-1 / 60601-2-12',
+    },
+    iso9001: {
+      certifyingBody: 'Bureau Veritas Certification India',
+      certNo: 'BV-IN-2024-90001-66103',
+      scope: 'Design, development, manufacture and servicing of medical devices.',
+      issueDate: '15-05-2024',
+      expiryDate: '14-05-2027',
+      originalDate: '15-05-2010',
+      standard: 'ISO 9001:2015',
+    },
+    serviceNetwork: {
+      cities: [
+        { city: 'Mumbai', state: 'Maharashtra', engineers: 18, response: '2 hr' },
+        { city: 'New Delhi', state: 'Delhi', engineers: 12, response: '4 hr' },
+        { city: 'Bengaluru', state: 'Karnataka', engineers: 10, response: '4 hr' },
+        { city: 'Chennai', state: 'Tamil Nadu', engineers: 8, response: '4 hr' },
+        { city: 'Kolkata', state: 'West Bengal', engineers: 7, response: '6 hr' },
+        { city: 'Hyderabad', state: 'Telangana', engineers: 9, response: '4 hr' },
+        { city: 'Pune', state: 'Maharashtra', engineers: 6, response: '6 hr' },
+        { city: 'Ahmedabad', state: 'Gujarat', engineers: 5, response: '8 hr' },
+        { city: 'Lucknow', state: 'Uttar Pradesh', engineers: 4, response: '12 hr' },
+        { city: 'Patna', state: 'Bihar', engineers: 3, response: '24 hr' },
+        { city: 'Bhubaneswar', state: 'Odisha', engineers: 3, response: '24 hr' },
+        { city: 'Chandigarh', state: 'Chandigarh UT', engineers: 3, response: '12 hr' },
+        { city: 'Jaipur', state: 'Rajasthan', engineers: 4, response: '12 hr' },
+        { city: 'Guwahati', state: 'Assam', engineers: 2, response: '24 hr' },
+        { city: 'Trivandrum', state: 'Kerala', engineers: 3, response: '24 hr' },
+        { city: 'Indore', state: 'Madhya Pradesh', engineers: 3, response: '24 hr' },
+        { city: 'Nagpur', state: 'Maharashtra', engineers: 3, response: '24 hr' },
+        { city: 'Visakhapatnam', state: 'Andhra Pradesh', engineers: 3, response: '24 hr' },
+        { city: 'Bhopal', state: 'Madhya Pradesh', engineers: 2, response: '24 hr' },
+        { city: 'Coimbatore', state: 'Tamil Nadu', engineers: 2, response: '24 hr' },
+        { city: 'Vadodara', state: 'Gujarat', engineers: 2, response: '24 hr' },
+        { city: 'Surat', state: 'Gujarat', engineers: 2, response: '24 hr' },
+        { city: 'Madurai', state: 'Tamil Nadu', engineers: 2, response: '24 hr' },
+        { city: 'Dehradun', state: 'Uttarakhand', engineers: 2, response: '24 hr' },
+        { city: 'Ranchi', state: 'Jharkhand', engineers: 1, response: '48 hr' },
+        { city: 'Raipur', state: 'Chhattisgarh', engineers: 2, response: '24 hr' },
+        { city: 'Mangalore', state: 'Karnataka', engineers: 1, response: '24 hr' },
+        { city: 'Aizawl', state: 'Mizoram', engineers: 1, response: '72 hr' },
+      ],
+    },
+    projects: [
+      { name: 'AIIMS Rishikesh — 28 Adult Ventilators', value: 7800000, client: 'AIIMS Rishikesh', completed: '12-08-2024' },
+      { name: 'KGMU Lucknow — 22 Adult Ventilators', value: 6200000, client: 'KGMU', completed: '20-04-2024' },
+      { name: 'Sanjay Gandhi PGI — 18 Anaesthesia Ventilators', value: 5600000, client: 'SGPGI Lucknow', completed: '15-12-2023' },
+      { name: 'AIIMS Jodhpur — 15 Adult Ventilators', value: 4400000, client: 'AIIMS Jodhpur', completed: '08-09-2023' },
+      { name: 'JIPMER — 24 Adult Ventilators', value: 6800000, client: 'JIPMER Puducherry', completed: '20-05-2022' },
+      { name: 'Tata Memorial — 14 Anaesthesia Ventilators', value: 5200000, client: 'TMH Mumbai', completed: '12-11-2021' },
+    ],
+    bg: {
+      bankName: 'ICICI Bank',
+      branch: 'Andheri East',
+      bgNo: 'ICICI/BG/2026/04/9982',
+      amount: 2400000,
+      issueDate: '02-04-2026',
+      validity: '210 days',
+    },
+  },
+
+  // ---- HB-05: Universal Hospital Equipment Co. (not_eligible — turnover below threshold and < 10 city service network) ----
+  {
+    slug: 'bidder-05-universal-hospital-equipment',
+    company: 'Universal Hospital Equipment Co.',
+    address: '14, Rani Jhansi Road, Civil Lines, Nagpur - 440001',
+    pan: 'AAFFU3344Q',
+    gstin: '27AAFFU3344Q1Z6',
+    legalName: 'Universal Hospital Equipment Company',
+    dateOfRegistration: '04-09-2017',
+    gstStatus: 'ACTIVE',
+    incDate: '04-09-2017',
+    ceo: { name: 'Mr. Sandeep Kulkarni', designation: 'Director' },
+    coverBody: [
+      'We submit our bid for the AIIMS ventilator tender. Universal Hospital Equipment Co. has been operational since September 2017 (~8.5 years).',
+      'We are CDSCO Form MD-9 licensed for adult ventilators and ISO 13485:2016 certified.',
+      'Note: Our annual turnover for FY 2024-25 is Rs. 6.8 Crore. While this is below the Rs. 10 Crore threshold, we have grown 22% YoY and request consideration. Net worth as on 31-03-2025 is Rs. 4.2 Crore.',
+      'Our service network presently covers 7 cities. We are expanding to additional 4 cities (Lucknow, Jaipur, Kochi, Bhubaneswar) by end-2026.',
+    ],
+    ca: {
+      caFirm: 'Iyer Mahajan & Co.',
+      caName: 'CA Vinod Mahajan',
+      caRegNo: '067112W',
+      udin: '24067112VMUHEQ4422',
+      turnovers: [
+        { fy: 'FY 2024-25', amount: 68000000 },
+        { fy: 'FY 2023-24', amount: 56000000 },
+        { fy: 'FY 2022-23', amount: 47000000 },
+      ],
+      place: 'Nagpur',
+      date: '20-03-2026',
+    },
+    cdsco: {
+      licenseNo: 'MFG/MD/2022/0411',
+      issueDate: '15-09-2022',
+      expiryDate: '14-09-2027',
+      devices: ['Adult Mechanical Ventilator (Class C)', 'Patient Monitor (Class B)'],
+      manufacturingSite: '14, Rani Jhansi Road, Civil Lines, Nagpur',
+    },
+    iso13485: {
+      certifyingBody: 'Underwriters Laboratories India',
+      certNo: 'UL-IN-2023-13485-22087',
+      scope: 'Manufacture of adult mechanical ventilators and patient monitors.',
+      issueDate: '01-12-2023',
+      expiryDate: '30-11-2026',
+      originalDate: '01-12-2020',
+      standard: 'ISO 13485:2016',
+    },
+    iec60601: {
+      certifyingBody: 'ETDC (NABL-accredited)',
+      certNo: 'ETDC-IEC-60601-2023-0788',
+      scope: 'IEC 60601-1 and 60601-2-12 compliance for the UHE-V200 ventilator.',
+      issueDate: '20-04-2023',
+      expiryDate: '19-04-2026',
+      originalDate: '20-04-2023',
+      standard: 'IEC 60601-1 / 60601-2-12',
+    },
+    serviceNetwork: {
+      cities: [
+        { city: 'Nagpur', state: 'Maharashtra', engineers: 6, response: '4 hr' },
+        { city: 'Mumbai', state: 'Maharashtra', engineers: 4, response: '8 hr' },
+        { city: 'Pune', state: 'Maharashtra', engineers: 3, response: '12 hr' },
+        { city: 'Bhopal', state: 'Madhya Pradesh', engineers: 2, response: '24 hr' },
+        { city: 'Indore', state: 'Madhya Pradesh', engineers: 2, response: '24 hr' },
+        { city: 'Aurangabad', state: 'Maharashtra', engineers: 2, response: '24 hr' },
+        { city: 'Raipur', state: 'Chhattisgarh', engineers: 1, response: '48 hr' },
+      ],
+    },
+    projects: [
+      { name: 'GMC Nagpur — 8 Adult Ventilators', value: 2800000, client: 'GMCH Nagpur', completed: '12-04-2024' },
+      { name: 'AIIMS Nagpur — 6 Adult Ventilators', value: 2400000, client: 'AIIMS Nagpur', completed: '08-09-2023' },
+      { name: 'GMC Bhopal — 5 Adult Ventilators', value: 2200000, client: 'GMC Bhopal', completed: '20-11-2022' },
+    ],
+    bg: {
+      bankName: 'Bank of Maharashtra',
+      branch: 'Civil Lines, Nagpur',
+      bgNo: 'BOM/BG/2026/04/0588',
+      amount: 2400000,
+      issueDate: '07-04-2026',
+      validity: '210 days',
+    },
+  },
+];
+
+function generateHealthcareBidders() {
+  for (const b of healthcareBidders) {
+    const dir = healthcareDir(b.slug);
+    console.log(`\nGenerating ${b.company} (${b.slug})…`);
+
+    coverLetter(
+      {
+        company: b.company,
+        address: b.address,
+        ceoName: b.ceo.name,
+        ceoDesignation: b.ceo.designation,
+        since: b.incDate.split('-')[2],
+        body: b.coverBody,
+      },
+      join(dir, '01-cover-letter.pdf'),
+    );
+    caCertificate(
+      {
+        company: b.company,
+        pan: b.pan,
+        caFirm: b.ca.caFirm,
+        caName: b.ca.caName,
+        caRegNo: b.ca.caRegNo,
+        udin: b.ca.udin,
+        turnovers: b.ca.turnovers,
+        place: b.ca.place,
+        date: b.ca.date,
+      },
+      join(dir, '02-ca-turnover-certificate.pdf'),
+    );
+    if (b.cdsco) {
+      cdscoLicense({ company: b.company, ...b.cdsco }, join(dir, '03-cdsco-manufacturing-license.pdf'));
+    }
+    isoCertificate({ company: b.company, ...b.iso13485 }, join(dir, '04-iso-13485-certificate.pdf'));
+    if (b.iec60601) {
+      isoCertificate({ company: b.company, ...b.iec60601 }, join(dir, '05-iec-60601-compliance.pdf'));
+    }
+    gstCertificate(
+      {
+        company: b.company,
+        gstin: b.gstin,
+        legalName: b.legalName,
+        dateOfRegistration: b.dateOfRegistration,
+        address: b.address,
+        status: b.gstStatus,
+      },
+      join(dir, '06-gst-registration-certificate.pdf'),
+    );
+    panCard(
+      {
+        pan: b.pan,
+        name: b.legalName.toUpperCase(),
+        dateOfIncorporation: b.incDate,
+        fatherOrFirm:
+          b.legalName.includes('Private Limited') || b.legalName.includes('Limited')
+            ? 'Private Limited Company'
+            : b.legalName.includes('Company')
+              ? 'Partnership Firm'
+              : 'Sole Proprietorship',
+      },
+      join(dir, '07-pan-card.pdf'),
+    );
+    serviceNetworkStatement(
+      {
+        company: b.company,
+        address: b.address,
+        cities: b.serviceNetwork.cities,
+        ceoName: b.ceo.name,
+      },
+      join(dir, '08-service-network-statement.pdf'),
+    );
+    projectsList({ company: b.company, projects: b.projects }, join(dir, '09-similar-supply-list.pdf'));
+    bankGuarantee({ company: b.company, ...b.bg }, join(dir, '10-emd-bank-guarantee.pdf'));
+    if (b.iso9001) {
+      isoCertificate({ company: b.company, ...b.iso9001 }, join(dir, '11-iso-9001-certificate.pdf'));
+    }
+  }
+}
+
+// ============================================================================
 // Run
 // ============================================================================
 
-console.log('Generating tender PDF…');
+console.log('Generating CRPF construction tender PDF…');
 generateTender();
 
 for (const b of bidders) {
@@ -1694,5 +2743,9 @@ for (const b of bidders) {
   projectsList({ company: b.company, projects: b.projects }, join(dir, '07-projects-list.pdf'));
   bankGuarantee({ company: b.company, ...b.bg }, join(dir, '08-emd-bank-guarantee.pdf'));
 }
+
+console.log('\nGenerating AIIMS healthcare tender PDF…');
+generateHealthcareTender();
+generateHealthcareBidders();
 
 console.log('\nDone. Sample data written to', OUT);

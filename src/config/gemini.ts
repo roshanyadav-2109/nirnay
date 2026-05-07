@@ -28,12 +28,19 @@ export const GEMINI_MODELS = [
 
 export const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
 
+// Bundled fallback key so judges / first-time users don't need to bring their
+// own. localStorage and env-var both override this if set. Keep this as a
+// deliberate convenience for the demo deployment — users who want their own
+// quota can paste a key in Settings.
+const BUNDLED_GEMINI_API_KEY = 'AIzaSyAYc_b2CdpZHCszPPIyiHPNPGw-kUsmVMo';
+
 export function getGeminiApiKey(): string | null {
   if (typeof window === 'undefined') return null;
   const stored = localStorage.getItem(GEMINI_KEY_STORAGE);
   if (stored) return stored;
   const fromEnv = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
-  return fromEnv || null;
+  if (fromEnv) return fromEnv;
+  return BUNDLED_GEMINI_API_KEY;
 }
 
 export function setGeminiApiKey(key: string): void {
