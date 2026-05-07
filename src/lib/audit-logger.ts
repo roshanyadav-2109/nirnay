@@ -1,18 +1,22 @@
 import { supabase } from '../config/supabase';
+import { getOfficerName } from './officer';
 import type { AuditEvent } from '../types';
 
 export type AuditEventType =
   | 'tender_uploaded'
+  | 'tender_deleted'
   | 'criteria_extracted'
   | 'criteria_edited'
   | 'criteria_verified'
   | 'bidder_uploaded'
+  | 'bidder_deleted'
   | 'evaluation_started'
   | 'evaluation_completed'
   | 'verdict_produced'
   | 'verdict_overridden'
   | 'report_generated'
-  | 'audit_chain_verified';
+  | 'audit_chain_verified'
+  | 'officer_set';
 
 export async function sha256(message: string): Promise<string> {
   const buf = new TextEncoder().encode(message);
@@ -29,7 +33,9 @@ export async function logAuditEvent(opts: {
   actor?: string;
   payload?: Record<string, unknown>;
 }): Promise<void> {
-  const actor = opts.actor || 'system';
+  // System events explicitly pass actor: 'system'. Otherwise we use the
+  // officer name from localStorage so the audit trail is per-user.
+  const actor = opts.actor || getOfficerName();
   const payload = opts.payload || {};
 
   const { data: lastEvent } = await supabase

@@ -56,7 +56,6 @@ export function useBidders() {
         event_type: 'bidder_uploaded',
         entity_type: 'bidder',
         entity_id: bidder.id,
-        actor: 'officer',
         payload: { name: input.name, doc_count: docs.length },
       });
 
@@ -194,7 +193,7 @@ export function useBidders() {
       evaluation: Evaluation,
       newStatus: Evaluation['status'],
       reason: string,
-      actor = 'officer',
+      actor?: string,
     ): Promise<Evaluation> => {
       const { data, error } = await supabase
         .from('evaluations')
@@ -262,11 +261,48 @@ export function useBidders() {
     [setBidders, setEvaluations],
   );
 
+  const deleteBidder = useCallback(
+    async (bidder: Bidder) => {
+      await logAuditEvent({
+        event_type: 'bidder_deleted',
+        entity_type: 'bidder',
+        entity_id: bidder.id,
+        payload: {
+          name: bidder.name,
+          tender_id: bidder.tender_id,
+          doc_count: bidder.documents.length,
+        },
+      });
+
+      // Try to clean up the bidder's documents from storage.
+      try {
+        const paths = bidder.documents.map((d) => d.file_path).filter(Boolean);
+        if (paths.length) {
+          for (let i = 0; i < paths.length; i += 100) {
+            await supabase.storage.from('documents').remove(paths.slice(i, i + 100));
+          }
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('Bidder storage cleanup failed:', e);
+      }
+
+      const { error } = await supabase.from('bidders').delete().eq('id', bidder.id);
+      if (error) throw error;
+
+      const store = useEvaluationStore.getState();
+      store.setBidders(store.bidders.filter((b) => b.id !== bidder.id));
+      store.setEvaluations(store.evaluations.filter((e) => e.bidder_id !== bidder.id));
+    },
+    [],
+  );
+
   return {
     addBidder,
     evaluateBidder,
     evaluateAll,
     overrideVerdict,
     loadBiddersForTender,
+    deleteBidder,
   };
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { KeyRound, ExternalLink, Trash2, Check, Cpu } from 'lucide-react';
+import { KeyRound, ExternalLink, Trash2, Check, Cpu, UserCircle2 } from 'lucide-react';
 import {
   getGeminiApiKey,
   setGeminiApiKey,
@@ -8,12 +8,21 @@ import {
   setGeminiModelId,
   GEMINI_MODELS,
 } from '../config/gemini';
+import { getOfficerName, setOfficerName } from '../lib/officer';
 import toast from 'react-hot-toast';
 
 export default function SettingsPage() {
   const [key, setKey] = useState(getGeminiApiKey() || '');
   const [revealed, setRevealed] = useState(false);
   const [modelId, setModelIdState] = useState(getGeminiModelId());
+  const [officer, setOfficerState] = useState(getOfficerName());
+
+  const saveOfficer = () => {
+    const trimmed = officer.trim();
+    if (!trimmed) return toast.error('Officer name cannot be empty');
+    setOfficerName(trimmed);
+    toast.success(`Officer set to "${trimmed}"`);
+  };
 
   const save = () => {
     if (!key.trim()) return toast.error('Enter a key first');
@@ -43,6 +52,30 @@ export default function SettingsPage() {
           API keys live in your browser only — never sent to our servers.
         </p>
       </div>
+
+      <section className="nirnay-card p-6">
+        <div className="mb-5">
+          <p className="label-overline">Identity</p>
+          <h3 className="font-display font-semibold text-lg text-ink mt-1.5 tracking-tight flex items-center gap-2">
+            <UserCircle2 size={16} strokeWidth={1.75} className="text-navy-400" />
+            Officer name
+          </h3>
+          <p className="text-xs text-navy-400 mt-1">
+            Attached as <code className="font-mono">actor</code> on every audit-log entry.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <input
+            value={officer}
+            onChange={(e) => setOfficerState(e.target.value)}
+            className="nirnay-input"
+            placeholder="e.g. Insp. R. Yadav · CRPF Procurement Cell"
+          />
+          <button onClick={saveOfficer} className="nirnay-btn-primary">
+            <Check size={14} /> Save
+          </button>
+        </div>
+      </section>
 
       <section className="nirnay-card p-6">
         <div className="mb-5">

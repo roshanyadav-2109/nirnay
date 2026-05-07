@@ -171,6 +171,35 @@ See [`sample-data/README.md`](sample-data/README.md) for the full criterion-by-c
 
 ---
 
+## Multi-tender, multi-officer
+
+The dashboard supports multiple tenders simultaneously. Each tender has its own
+criteria, bidders, evaluations, and audit events — there is no global state to
+collide on. Multiple officers can use the same deployed instance:
+
+* On first launch each user is prompted for an **officer name**, stored in their
+  browser's `localStorage`. This name is attached as `actor` on every audit log
+  entry, so the trail is always attributable.
+* The currently-selected tender is also stored per-browser, so two officers
+  open in different tabs can be working on different tenders at the same time
+  without stepping on each other.
+* Data lives in Supabase — switching browsers / machines just shows the same
+  shared tender list. Nothing is lost between sessions; deletion only happens
+  via the explicit Delete action in the UI (which itself is audit-logged).
+
+## Deploying
+
+The app is a static SPA — deploy to any static host. Build outputs to `dist/`.
+
+* **Vercel:** push to GitHub, import the repo. `vercel.json` already has the SPA
+  rewrite rule; no env config required if you keep the bundled Supabase project.
+  Add `VITE_GEMINI_API_KEY` as an env var if you want a default key for users.
+* **Netlify:** `netlify.toml` is checked in. `npm run build` then `dist/` is
+  the publish dir.
+* **Anywhere static:** `npm run build` and serve `dist/` behind a server that
+  rewrites unknown paths to `/index.html`. `public/_redirects` covers Netlify;
+  add the equivalent for nginx (`try_files $uri /index.html;`) or Apache.
+
 ## Roadmap (post-hackathon)
 
 * **Dual-engine OCR** — PaddleOCR + LayoutLMv3 for scanned/handwritten docs as a fallback when Gemini's confidence is low.

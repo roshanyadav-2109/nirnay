@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Eye, BarChart3 } from 'lucide-react';
+import { Play, Eye, BarChart3, UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useEvaluationStore } from '../store/evaluation-store';
 import { useTender } from '../hooks/useTender';
 import { useBidders } from '../hooks/useBidders';
 import BidderCard from '../components/evaluation/BidderCard';
 import EvidencePanel from '../components/evaluation/EvidencePanel';
+import AddBidderModal from '../components/evaluation/AddBidderModal';
 import StatusPill from '../components/common/StatusPill';
 import ConfidenceMeter from '../components/common/ConfidenceMeter';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -16,15 +17,20 @@ import type { Evaluation } from '../types';
 export default function EvaluationPage() {
   const navigate = useNavigate();
   const { tender, criteria, bidders, evaluations, isProcessing } = useEvaluationStore();
-  const { loadLatestTender } = useTender();
+  const { loadActiveTender } = useTender();
   const { evaluateAll, loadBiddersForTender } = useBidders();
   const [selectedBidderId, setSelectedBidderId] = useState<string | null>(null);
   const [selectedEval, setSelectedEval] = useState<Evaluation | null>(null);
+  const [addBidderOpen, setAddBidderOpen] = useState(false);
+
+  const refreshBidders = async () => {
+    if (tender) await loadBiddersForTender(tender.id);
+  };
 
   useEffect(() => {
     (async () => {
       let t = tender;
-      if (!t) t = await loadLatestTender();
+      if (!t) t = await loadActiveTender();
       if (t) await loadBiddersForTender(t.id);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -70,9 +76,9 @@ export default function EvaluationPage() {
     return (
       <div className="max-w-3xl mx-auto nirnay-card p-8 text-center">
         <p className="text-navy-500">
-          Upload a tender first.{' '}
-          <button onClick={() => navigate('/')} className="text-gold-500 underline">
-            Go to Home
+          Select or create a tender first.{' '}
+          <button onClick={() => navigate('/')} className="text-ink underline">
+            Go to Tenders
           </button>
         </p>
       </div>
@@ -91,11 +97,17 @@ export default function EvaluationPage() {
         </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setAddBidderOpen(true)}
+            className="nirnay-btn-ghost"
+          >
+            <UserPlus size={13} /> Add bidder
+          </button>
+          <button
             onClick={() => navigate('/report')}
             disabled={!allEvaluated}
             className="nirnay-btn-ghost"
           >
-            <BarChart3 size={16} /> Report
+            <BarChart3 size={13} /> Report
           </button>
           <button
             onClick={startEvaluation}
@@ -106,6 +118,13 @@ export default function EvaluationPage() {
           </button>
         </div>
       </div>
+
+      <AddBidderModal
+        open={addBidderOpen}
+        tenderId={tender.id}
+        onClose={() => setAddBidderOpen(false)}
+        onAdded={refreshBidders}
+      />
 
       <div className="grid grid-cols-12 gap-6">
         <div className="col-span-12 lg:col-span-3 space-y-2">
@@ -122,11 +141,23 @@ export default function EvaluationPage() {
                 setSelectedBidderId(b.id);
                 setSelectedEval(null);
               }}
+              onDeleted={() => {
+                if (selectedBidderId === b.id) setSelectedBidderId(null);
+                if (selectedEval?.bidder_id === b.id) setSelectedEval(null);
+                refreshBidders();
+              }}
             />
           ))}
+          <button
+            onClick={() => setAddBidderOpen(true)}
+            className="w-full border border-dashed border-rule rounded-md py-3 text-xs text-navy-500 hover:text-ink hover:border-navy-300 transition-colors"
+          >
+            <UserPlus size={12} className="inline mr-1.5" />
+            Add bidder
+          </button>
           {bidders.length === 0 && (
             <div className="nirnay-card p-4 text-sm text-navy-400">
-              No bidders. Add some on the Home page.
+              No bidders yet — click <strong>Add bidder</strong> above.
             </div>
           )}
         </div>

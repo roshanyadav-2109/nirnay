@@ -12,13 +12,13 @@ import type { Evaluation } from '../types';
 export default function ReportPage() {
   const navigate = useNavigate();
   const { tender, criteria, bidders, evaluations } = useEvaluationStore();
-  const { loadLatestTender } = useTender();
+  const { loadActiveTender } = useTender();
   const { loadBiddersForTender } = useBidders();
 
   useEffect(() => {
     (async () => {
       let t = tender;
-      if (!t) t = await loadLatestTender();
+      if (!t) t = await loadActiveTender();
       if (t) await loadBiddersForTender(t.id);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -61,7 +61,6 @@ export default function ReportPage() {
         event_type: 'report_generated',
         entity_type: 'tender',
         entity_id: tender.id,
-        actor: 'officer',
         payload: { ...summary, format: 'print' },
       });
     }
@@ -72,9 +71,9 @@ export default function ReportPage() {
     return (
       <div className="max-w-3xl mx-auto nirnay-card p-8 text-center">
         <p className="text-navy-500">
-          No tender.{' '}
-          <button onClick={() => navigate('/')} className="text-gold-500 underline">
-            Go to Home
+          No tender selected.{' '}
+          <button onClick={() => navigate('/')} className="text-ink underline">
+            Go to Tenders
           </button>
         </p>
       </div>

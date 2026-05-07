@@ -23,7 +23,7 @@ export default function EvidencePanel({ evaluation, onClose }: Props) {
     if (!reason.trim()) return toast.error('Reason required for override');
     const t = toast.loading('Saving override…');
     try {
-      await overrideVerdict(evaluation, newStatus, reason.trim(), 'officer');
+      await overrideVerdict(evaluation, newStatus, reason.trim());
       toast.success('Verdict overridden + audit logged', { id: t });
       setOverriding(false);
     } catch (e) {

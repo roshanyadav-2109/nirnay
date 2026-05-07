@@ -32,7 +32,6 @@ export default function AuditPage() {
         await logAuditEvent({
           event_type: 'audit_chain_verified',
           entity_type: 'audit_log',
-          actor: 'officer',
           payload: { ok: true, total: result.total },
         });
         refresh();

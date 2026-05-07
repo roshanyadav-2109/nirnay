@@ -9,10 +9,10 @@ import toast from 'react-hot-toast';
 export default function CriteriaPage() {
   const navigate = useNavigate();
   const { tender, criteria } = useEvaluationStore();
-  const { loadLatestTender, verifyAllCriteria, updateCriterion } = useTender();
+  const { loadActiveTender, verifyAllCriteria, updateCriterion } = useTender();
 
   useEffect(() => {
-    if (!tender) loadLatestTender();
+    if (!tender) loadActiveTender();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -26,11 +26,11 @@ export default function CriteriaPage() {
     return (
       <div className="max-w-3xl mx-auto nirnay-card p-8 text-center">
         <p className="text-navy-500">
-          No tender uploaded yet. Head back to{' '}
-          <button onClick={() => navigate('/')} className="text-gold-500 underline">
-            Home
+          No tender selected.{' '}
+          <button onClick={() => navigate('/')} className="text-ink underline">
+            Go to Tenders
           </button>{' '}
-          to upload one.
+          to pick one or create a new one.
         </p>
       </div>
     );

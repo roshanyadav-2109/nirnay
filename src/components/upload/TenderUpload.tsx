@@ -7,7 +7,11 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
-export default function TenderUpload() {
+interface Props {
+  onCreated?: () => void;
+}
+
+export default function TenderUpload({ onCreated }: Props = {}) {
   const [file, setFile] = useState<File | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -41,6 +45,7 @@ export default function TenderUpload() {
     try {
       const { criteria } = await uploadAndProcessTender(file, name.trim(), description.trim() || undefined);
       toast.success(`Extracted ${criteria.length} criteria`, { id: t });
+      onCreated?.();
       navigate('/criteria');
     } catch (e) {
       toast.error(`Failed: ${(e as Error).message}`, { id: t });
