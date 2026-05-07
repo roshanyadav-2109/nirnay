@@ -242,6 +242,16 @@ function inrInWords(amount) {
     120000000: 'Twelve Crore',
     220000000: 'Twenty Two Crore',
     2400000: 'Twenty Four Lakh',
+    250000000: 'Twenty Five Crore',
+    270000000: 'Twenty Seven Crore',
+    280000000: 'Twenty Eight Crore',
+    320000000: 'Thirty Two Crore',
+    380000000: 'Thirty Eight Crore',
+    35000000: 'Three Crore Fifty Lakh',
+    55000000: 'Five Crore Fifty Lakh',
+    60000000: 'Six Crore',
+    70000000: 'Seven Crore',
+    5000000: 'Fifty Lakh',
     20000000: 'Two Crore',
     25000000: 'Two Crore Fifty Lakh',
     30000000: 'Three Crore',
@@ -2747,5 +2757,560 @@ for (const b of bidders) {
 console.log('\nGenerating AIIMS healthcare tender PDF…');
 generateHealthcareTender();
 generateHealthcareBidders();
+
+// ============================================================================
+// THIRD TENDER — CRPF Indo-Bangladesh Border Fencing
+// ============================================================================
+
+function generateFencingTender() {
+  const doc = newDoc();
+  const margin = 48;
+  const w = pageW(doc);
+
+  ashokSeal(doc, w / 2, margin + 30, 'CRPF');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('GOVERNMENT OF INDIA', w / 2, margin + 78, { align: 'center' });
+  doc.setFontSize(10);
+  doc.text('MINISTRY OF HOME AFFAIRS', w / 2, margin + 92, { align: 'center' });
+  doc.setFontSize(13);
+  doc.text('CENTRAL RESERVE POLICE FORCE', w / 2, margin + 108, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text('Frontier Headquarters (Eastern Sector), Salt Lake, Kolkata - 700091', w / 2, margin + 122, { align: 'center' });
+  doc.setFontSize(8);
+  doc.setTextColor(80, 80, 80);
+  doc.text('Tel: 033-23210011   |   www.crpf.gov.in   |   eprocure.gov.in', w / 2, margin + 134, { align: 'center' });
+  doc.setTextColor(0, 0, 0);
+  drawDoubleRule(doc, margin + 146, margin);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.text('NOTICE INVITING TENDER (e-Procurement)', w / 2, margin + 172, { align: 'center' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text('F.No. CRPF/EAST/FENCE/2026/03-058', margin, margin + 200);
+  doc.text('Dated: 18-03-2026', w - margin, margin + 200, { align: 'right' });
+
+  let y = margin + 224;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('Name of Work : Construction and Erection of Border Fencing', margin, y);
+  y += 14;
+  doc.text('along the Indo-Bangladesh Border, Sector 9, Tripura', margin, y);
+  y += 14;
+  doc.text('(Length: 18.4 km — Phase II)', margin, y);
+  y += 22;
+
+  doc.setFont('helvetica', 'normal');
+  y = table(
+    doc,
+    margin,
+    y,
+    [
+      { key: 'k', label: 'Particulars', w: 240 },
+      { key: 'v', label: 'Details', w: pageW(doc) - margin * 2 - 240 },
+    ],
+    [
+      { k: 'Tender Reference No.', v: 'CRPF/EAST/FENCE/2026/03/058' },
+      { k: 'Estimated Cost (incl. GST)', v: `${rs(250000000)} (Rupees Twenty Five Crore Only)` },
+      { k: 'Earnest Money Deposit (EMD)', v: `${rs(5000000)} (Rupees Fifty Lakh Only)` },
+      { k: 'Tender Fee (Non-refundable)', v: 'Rs. 25,000/-' },
+      { k: 'Period of Completion', v: '24 (Twenty Four) months from date of award' },
+      { k: 'Class of Contractor', v: 'Class-I (Civil — Border Infrastructure)' },
+      { k: 'Pre-bid Meeting', v: '01-04-2026, 11:00 hrs IST, FHQ Kolkata' },
+      { k: 'Last Date for Bid Submission', v: `${BID_DATE}, 16:00 hrs IST` },
+      { k: 'Date of Technical Bid Opening', v: '17-04-2026, 11:00 hrs IST' },
+      { k: 'Bid Validity', v: '180 days from technical bid opening' },
+    ],
+    { headerBg: [232, 232, 224] },
+  );
+
+  y += 18;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('SECTION 3 — MINIMUM ELIGIBILITY CRITERIA', margin, y);
+  y += 5;
+  hairline(doc, margin, y, w - margin, y);
+  y += 14;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+
+  y = paragraph(doc, margin, y,
+    'The bidder shall meet ALL of the criteria below. All criteria are mandatory unless explicitly marked as preferred. CRPF reserves the right to verify documents directly with the issuing authority.');
+  y += 6;
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('3.1  Financial Eligibility', margin, y); y += 14;
+  doc.setFont('helvetica', 'normal');
+  y = paragraph(doc, margin, y,
+    'C-1.  The bidder SHALL have a minimum annual turnover of Rs. 15,00,00,000/- (Rupees Fifteen Crore Only) in any one of the last three financial years (FY 2022-23 / 2023-24 / 2024-25), certified by a practising Chartered Accountant with UDIN.');
+  y += 4;
+  y = paragraph(doc, margin, y,
+    'C-2.  The bidder SHALL submit a valid Solvency Certificate from any Scheduled Commercial Bank for an amount NOT LESS THAN Rs. 5,00,00,000/- (Rupees Five Crore Only), issued not earlier than six (6) months before the bid submission date.');
+  y += 4;
+  y = paragraph(doc, margin, y,
+    'C-3.  The bidder MUST submit Earnest Money Deposit (EMD) of Rs. 50,00,000/- (Rupees Fifty Lakh Only) in the form of a Bank Guarantee or Demand Draft drawn in favour of "DDO, FHQ CRPF Eastern Sector".');
+  y += 8;
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('3.2  Technical Eligibility', margin, y); y += 14;
+  doc.setFont('helvetica', 'normal');
+  y = paragraph(doc, margin, y,
+    'C-4.  The bidder SHALL have successfully completed at least two (2) similar border-fencing or boundary-infrastructure projects in the last seven (7) years from date of bid submission, each of value not less than Rs. 10,00,00,000/- (Rupees Ten Crore Only). "Similar" means construction of fencing, boundary walls, security walls or perimeter infrastructure for Government / paramilitary / armed-forces clients.');
+  y += 4;
+  y = paragraph(doc, margin, y,
+    'C-5.  The bidder MUST have a minimum of eight (8) years of continuous experience in civil construction, with demonstrable work in border, boundary or security-related infrastructure.');
+  y += 8;
+
+  if (y > pageH(doc) - 200) { doc.addPage(); y = margin; }
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('3.3  Statutory Compliance', margin, y); y += 14;
+  doc.setFont('helvetica', 'normal');
+  y = paragraph(doc, margin, y,
+    'C-6.  The bidder SHALL hold a valid GST Registration. GSTIN must be active as on the bid submission date, verifiable through the GSTN portal.');
+  y += 4;
+  y = paragraph(doc, margin, y,
+    'C-7.  The bidder SHALL hold a valid ISO 9001:2015 (Quality Management System) certification, issued by an IAF-accredited certifying body and valid as on the bid submission date.');
+  y += 8;
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('3.4  Document Submission', margin, y); y += 14;
+  doc.setFont('helvetica', 'normal');
+  y = paragraph(doc, margin, y,
+    'C-8.  The bidder SHALL submit a self-attested copy of the Permanent Account Number (PAN) Card of the firm / company.');
+  y += 8;
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('3.5  Preferred (Non-Mandatory) Criteria', margin, y); y += 14;
+  doc.setFont('helvetica', 'normal');
+  y = paragraph(doc, margin, y,
+    'C-9.  Use of BIS-certified hot-dip galvanised steel from approved domestic manufacturers (TATA / SAIL / Jindal / Essar) for fencing materials is DESIRABLE and shall carry weightage in the technical scoring.');
+  y += 4;
+  y = paragraph(doc, margin, y,
+    'C-10. Prior experience executing border infrastructure work for paramilitary forces (BSF / SSB / ITBP / CRPF) or Indian Armed Forces is ADVANTAGEOUS and may be cited in the cover letter.');
+
+  if (y > pageH(doc) - 180) { doc.addPage(); y = margin; } else { y += 24; }
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('DECLARATION', margin, y);
+  y += 14;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  y = paragraph(doc, margin, y,
+    'CRPF reserves the right to reject any or all bids without assigning any reason and to relax the criteria in the interest of public service in accordance with the General Financial Rules, 2017. Conditional bids are liable to rejection.',
+    { fontSize: 9, lineHeight: 12 });
+
+  y += 30;
+  signatureBlock(doc, margin, y, {
+    name: '(A. K. Mishra, IPS)',
+    designation: 'Inspector General (Eastern Sector)',
+    line1: 'Frontier Headquarters CRPF, Kolkata',
+    line2: 'For and on behalf of President of India',
+  });
+  rectSeal(doc, w - margin - 110, y - 10, 110, 56, [
+    'OFFICE OF THE',
+    'INSPECTOR GENERAL',
+    '(EASTERN SECTOR)',
+    'CRPF FHQ, KOLKATA',
+  ]);
+
+  save(doc, join(OUT, 'fencing-tender.pdf'));
+}
+
+function fencingDir(slug) {
+  const d = join(OUT, 'fencing-bidders', slug);
+  if (!existsSync(d)) mkdirSync(d, { recursive: true });
+  return d;
+}
+
+const fencingBidders = [
+  // ---- FB-01: Hindustan Borders & Infrastructure (eligible) ----
+  {
+    slug: 'bidder-01-hindustan-borders-infrastructure',
+    company: 'Hindustan Borders & Infrastructure Ltd',
+    address: 'Plot 14, Sector 5, Salt Lake City, Kolkata - 700091',
+    pan: 'AAACH8821K',
+    gstin: '19AAACH8821K1Z3',
+    legalName: 'Hindustan Borders and Infrastructure Limited',
+    dateOfRegistration: '14-05-2010',
+    gstStatus: 'ACTIVE — verified on 11-04-2026',
+    incDate: '14-05-2010',
+    ceo: { name: 'Mr. Subir Banerjee', designation: 'Managing Director' },
+    coverBody: [
+      'We submit our bid for the Indo-Bangladesh border fencing tender (Sector 9, Tripura — Phase II). Hindustan Borders & Infrastructure has executed border-fencing and security-perimeter work for BSF, SSB and ITBP across the eastern, north-eastern and western sectors since 2010.',
+      'Our completed work includes 47 km of BSF border fencing along the Indo-Bangladesh border in West Bengal and Assam, the SSB perimeter at Birgunj-Raxaul, and the ITBP boundary at Sikkim. Annual turnover for FY 2024-25 was Rs. 32 Crore, certified by Banerjee Roy & Co.',
+      'We confirm full compliance with all eligibility criteria, including BIS-certified galvanised steel sourcing from TATA Steel and Jindal Steel for the fencing pillars and chain-link.',
+    ],
+    ca: {
+      caFirm: 'Banerjee Roy & Co.',
+      caName: 'CA Tapan Banerjee',
+      caRegNo: '054201E',
+      udin: '24054201BNRY7711',
+      turnovers: [
+        { fy: 'FY 2024-25', amount: 320000000 },
+        { fy: 'FY 2023-24', amount: 280000000 },
+        { fy: 'FY 2022-23', amount: 240000000 },
+      ],
+      place: 'Kolkata',
+      date: '20-03-2026',
+    },
+    solvency: {
+      bankName: 'State Bank of India',
+      branch: 'Salt Lake',
+      address: 'Sector 5, Salt Lake, Kolkata - 700091',
+      accountNo: 'XXXX XXXX 8821',
+      amount: 80000000,
+      date: '08-02-2026',
+      refNo: 'SBI/SLT/SOL/2026/0418',
+    },
+    iso9001: {
+      certifyingBody: 'Bureau Veritas Certification India',
+      certNo: 'BV-IN-2024-90001-77144',
+      scope:
+        'Construction and erection of border fencing, security perimeter walls, and boundary infrastructure for Government and paramilitary clients.',
+      issueDate: '01-06-2024',
+      expiryDate: '31-05-2027',
+      originalDate: '01-06-2015',
+    },
+    projects: [
+      { name: 'BSF Indo-Bangladesh Fencing — Phase I, North 24 Parganas', value: 220000000, client: 'BSF Eastern Command', completed: '20-09-2024' },
+      { name: 'SSB Indo-Nepal Boundary Wall — Birgunj Sector', value: 140000000, client: 'SSB HQ', completed: '15-04-2023' },
+      { name: 'ITBP Boundary Fencing — Sikkim Sector', value: 105000000, client: 'ITBP HQ', completed: '10-12-2022' },
+      { name: 'BSF Border Roads — Cooch Behar', value: 88000000, client: 'BSF', completed: '20-08-2021' },
+    ],
+    bg: {
+      bankName: 'State Bank of India',
+      branch: 'Salt Lake',
+      bgNo: 'SBI/BG/2026/04/2244',
+      amount: 5000000,
+      issueDate: '04-04-2026',
+      validity: '210 days',
+    },
+  },
+
+  // ---- FB-02: Eastern Steel Construction (not_eligible — turnover below + only 1 fencing project) ----
+  {
+    slug: 'bidder-02-eastern-steel-construction',
+    company: 'Eastern Steel Construction',
+    address: '22, B.T. Road, Kolkata - 700050',
+    pan: 'AAFFE3322B',
+    gstin: '19AAFFE3322B1ZP',
+    legalName: 'Eastern Steel Construction (Partnership)',
+    dateOfRegistration: '10-08-2015',
+    gstStatus: 'ACTIVE',
+    incDate: '10-08-2015',
+    ceo: { name: 'Mr. Debasish Mukherjee', designation: 'Managing Partner' },
+    coverBody: [
+      'We submit our bid for the captioned tender. Eastern Steel Construction has been operational since August 2015 (~10 years 8 months).',
+      'We have completed one fencing project for the West Bengal PWD and several boundary wall projects for state government clients. We are working towards expanding into BSF / SSB-grade work.',
+      'EMD of Rs. 50 Lakh is enclosed via Allahabad Bank Demand Draft.',
+    ],
+    ca: {
+      caFirm: 'Mukherjee Sen & Co.',
+      caName: 'CA Sourav Sen',
+      caRegNo: '067822E',
+      udin: '24067822MKSN3344',
+      turnovers: [
+        { fy: 'FY 2024-25', amount: 98000000 },
+        { fy: 'FY 2023-24', amount: 87000000 },
+        { fy: 'FY 2022-23', amount: 76000000 },
+      ],
+      place: 'Kolkata',
+      date: '14-03-2026',
+    },
+    solvency: {
+      bankName: 'Indian Bank',
+      branch: 'B.T. Road',
+      address: '22, B.T. Road, Kolkata - 700050',
+      accountNo: 'XXXX XXXX 3322',
+      amount: 35000000,
+      date: '20-02-2026',
+      refNo: 'IB/BTR/SOL/2026/0188',
+    },
+    iso9001: {
+      certifyingBody: 'TUV India Pvt Ltd',
+      certNo: 'TUV-IN-2024-90001-44882',
+      scope: 'Civil construction and steel-fabrication works.',
+      issueDate: '01-04-2024',
+      expiryDate: '31-03-2027',
+      originalDate: '01-04-2018',
+    },
+    projects: [
+      { name: 'WB PWD Boundary Fencing — Howrah PSU Plant', value: 92000000, client: 'WB PWD', completed: '12-01-2024' },
+      { name: 'KMC Park Boundary Wall, Salt Lake', value: 45000000, client: 'KMC', completed: '08-09-2022' },
+      { name: 'Govt Industrial Estate Wall — Durgapur', value: 38000000, client: 'WB Govt', completed: '20-04-2021' },
+    ],
+    bg: {
+      bankName: 'Indian Bank',
+      branch: 'B.T. Road',
+      bgNo: 'IB/DD/2026/04/0066',
+      amount: 5000000,
+      issueDate: '06-04-2026',
+      validity: '210 days',
+      mode: 'Demand Draft',
+    },
+  },
+
+  // ---- FB-03: Patel Boundary Works (needs_review — borderline experience + ISO scope) ----
+  {
+    slug: 'bidder-03-patel-boundary-works',
+    company: 'Patel Boundary Works',
+    address: 'Plot 8, Hindustan Steel Compound, Asansol - 713301',
+    pan: 'AAACP4411D',
+    gstin: '19AAACP4411D1ZQ',
+    legalName: 'Patel Boundary Works Pvt Ltd',
+    dateOfRegistration: '15-04-2018',
+    gstStatus: 'ACTIVE',
+    incDate: '15-04-2018',
+    ceo: { name: 'Mr. Hardik Patel', designation: 'Director' },
+    coverBody: [
+      'Patel Boundary Works was incorporated on 15-04-2018 (~7 years 12 months as on the bid submission date — slightly short of the 8-year minimum requested in C-5). We respectfully request consideration on the basis of substantive experience accumulated during this period.',
+      'We have executed two BSF border-related projects (mostly access roads with boundary wall) but the second of these is from 2018 and may fall outside the 7-year window depending on the date of measurement.',
+      'Our ISO 9001:2015 scope covers "general civil construction" and not specifically border infrastructure; the certifying body has been requested to update the scope.',
+    ],
+    ca: {
+      caFirm: 'Patel & Patel',
+      caName: 'CA Mehul Patel',
+      caRegNo: '102211W',
+      udin: '24102211PTMP6622',
+      turnovers: [
+        { fy: 'FY 2024-25', amount: 180000000 },
+        { fy: 'FY 2023-24', amount: 150000000 },
+        { fy: 'FY 2022-23', amount: 130000000 },
+      ],
+      place: 'Asansol',
+      date: '12-03-2026',
+    },
+    solvency: {
+      bankName: 'Bank of Baroda',
+      branch: 'Asansol Main',
+      address: 'Hindustan Steel Compound, Asansol - 713301',
+      accountNo: 'XXXX XXXX 4411',
+      amount: 60000000,
+      date: '01-12-2025',
+      refNo: 'BOB/ASN/SOL/2025/0488',
+    },
+    iso9001: {
+      certifyingBody: 'Intertek Certification India',
+      certNo: 'INT-9001-2023-66012',
+      scope: 'General civil construction and reinforced concrete works.',
+      issueDate: '15-09-2023',
+      expiryDate: '14-09-2026',
+      originalDate: '15-09-2020',
+    },
+    projects: [
+      { name: 'BSF Boundary Wall + Access Road — Dhubri Sector', value: 110000000, client: 'BSF Eastern', completed: '20-08-2024' },
+      { name: 'BSF Service Road + Wall — Murshidabad', value: 105000000, client: 'BSF Eastern', completed: '12-09-2018' },
+      { name: 'Govt PWD Steel Compound — Dhanbad', value: 78000000, client: 'Jharkhand PWD', completed: '15-06-2021' },
+    ],
+    bg: {
+      bankName: 'Bank of Baroda',
+      branch: 'Asansol Main',
+      bgNo: 'BOB/BG/2026/04/0099',
+      amount: 5000000,
+      issueDate: '07-04-2026',
+      validity: '210 days',
+    },
+  },
+
+  // ---- FB-04: Kalpana Steel & Civil (eligible) ----
+  {
+    slug: 'bidder-04-kalpana-steel-civil',
+    company: 'Kalpana Steel & Civil Pvt Ltd',
+    address: '57, Civil Lines, Guwahati - 781001',
+    pan: 'AAACK7711N',
+    gstin: '18AAACK7711N1Z8',
+    legalName: 'Kalpana Steel and Civil Private Limited',
+    dateOfRegistration: '20-07-2009',
+    gstStatus: 'ACTIVE',
+    incDate: '20-07-2009',
+    ceo: { name: 'Mrs. Anuradha Saikia', designation: 'Managing Director' },
+    coverBody: [
+      'Kalpana Steel & Civil, established in July 2009 (~16 years), is one of the larger civil-and-steel contractors in the north-east. We have executed border fencing for BSF, SSB and ITBP and have ongoing work along the Indo-Myanmar border in Mizoram.',
+      'Our flagship project is the 28 km BSF Indo-Bangladesh fencing in Karimganj, Assam. We also use only TATA Steel and SAIL hot-dip galvanised steel for all fencing work, certified through BIS-tested chains.',
+      'Audited turnover for FY 2024-25 is Rs. 38 Crore. ISO 9001:2015 (DNV-GL India) and Solvency Certificate (HDFC Bank, Guwahati) for Rs. 7 Crore are enclosed.',
+    ],
+    ca: {
+      caFirm: 'Saikia Borah & Associates',
+      caName: 'CA Pranab Saikia',
+      caRegNo: '038211E',
+      udin: '24038211SKBR8822',
+      turnovers: [
+        { fy: 'FY 2024-25', amount: 380000000 },
+        { fy: 'FY 2023-24', amount: 320000000 },
+        { fy: 'FY 2022-23', amount: 270000000 },
+      ],
+      place: 'Guwahati',
+      date: '18-03-2026',
+    },
+    solvency: {
+      bankName: 'HDFC Bank',
+      branch: 'Guwahati Main',
+      address: 'GS Road, Guwahati - 781005',
+      accountNo: 'XXXX XXXX 7711',
+      amount: 70000000,
+      date: '12-02-2026',
+      refNo: 'HDFC/GHY/SOL/2026/0612',
+    },
+    iso9001: {
+      certifyingBody: 'DNV-GL India',
+      certNo: 'DNV-9001-2024-04011',
+      scope:
+        'Construction of border fencing, perimeter walls, civil and steel infrastructure for paramilitary and Government clients.',
+      issueDate: '01-05-2024',
+      expiryDate: '30-04-2027',
+      originalDate: '01-05-2014',
+    },
+    projects: [
+      { name: 'BSF Indo-Bangladesh Fencing — Karimganj (28 km)', value: 280000000, client: 'BSF North-East', completed: '15-11-2024' },
+      { name: 'ITBP Indo-China Boundary Wall — Tawang Sector', value: 195000000, client: 'ITBP HQ', completed: '20-04-2023' },
+      { name: 'SSB Indo-Bhutan Fencing — Phuentsholing Sector', value: 142000000, client: 'SSB HQ', completed: '18-09-2022' },
+      { name: 'BSF Cooch Behar Phase II — boundary work', value: 120000000, client: 'BSF Eastern', completed: '10-06-2021' },
+      { name: 'Assam Rifles Boundary Renovation — Tezpur', value: 78000000, client: 'Assam Rifles', completed: '14-12-2019' },
+    ],
+    bg: {
+      bankName: 'HDFC Bank',
+      branch: 'Guwahati Main',
+      bgNo: 'HDFC/BG/2026/04/0918',
+      amount: 5000000,
+      issueDate: '03-04-2026',
+      validity: '210 days',
+    },
+  },
+
+  // ---- FB-05: Northeast Builders (not_eligible — no similar fencing project ≥ Rs 10 Cr) ----
+  {
+    slug: 'bidder-05-northeast-builders',
+    company: 'Northeast Builders',
+    address: '8, Paltan Bazar, Shillong - 793001',
+    pan: 'AAFFN5500X',
+    gstin: '17AAFFN5500X1ZM',
+    legalName: 'Northeast Builders (Partnership)',
+    dateOfRegistration: '04-02-2014',
+    gstStatus: 'ACTIVE',
+    incDate: '04-02-2014',
+    ceo: { name: 'Mr. K. Lyngdoh', designation: 'Managing Partner' },
+    coverBody: [
+      'We submit our bid. Northeast Builders has been operational since 2014 (~12 years) and primarily executes road, building and culvert work for the State PWD across Meghalaya and Assam.',
+      'We have not previously executed border-fencing work but our experience in remote-area civil construction is directly relevant. We seek to enter the border-infrastructure space through this tender.',
+    ],
+    ca: {
+      caFirm: 'Lyngdoh & Co.',
+      caName: 'CA Daniel Lyngdoh',
+      caRegNo: '094112E',
+      udin: '24094112LDDL5511',
+      turnovers: [
+        { fy: 'FY 2024-25', amount: 175000000 },
+        { fy: 'FY 2023-24', amount: 142000000 },
+        { fy: 'FY 2022-23', amount: 118000000 },
+      ],
+      place: 'Shillong',
+      date: '14-03-2026',
+    },
+    solvency: {
+      bankName: 'Punjab National Bank',
+      branch: 'Shillong Main',
+      address: 'Paltan Bazar, Shillong - 793001',
+      accountNo: 'XXXX XXXX 5500',
+      amount: 55000000,
+      date: '22-02-2026',
+      refNo: 'PNB/SHL/SOL/2026/0211',
+    },
+    iso9001: {
+      certifyingBody: 'TUV India Pvt Ltd',
+      certNo: 'TUV-IN-2023-90001-22288',
+      scope: 'Civil construction including roads, buildings and culverts in remote areas.',
+      issueDate: '20-06-2023',
+      expiryDate: '19-06-2026',
+      originalDate: '20-06-2017',
+    },
+    projects: [
+      { name: 'Meghalaya PWD Highway Stretch — Cherrapunji', value: 145000000, client: 'Meghalaya PWD', completed: '12-10-2024' },
+      { name: 'Govt Cultural Centre, Shillong', value: 88000000, client: 'Meghalaya Govt', completed: '20-08-2023' },
+      { name: 'Border Patrol Rest Houses, Tura', value: 32000000, client: 'BSF North-East', completed: '14-04-2022' },
+    ],
+    bg: {
+      bankName: 'Punjab National Bank',
+      branch: 'Shillong Main',
+      bgNo: 'PNB/BG/2026/04/0044',
+      amount: 5000000,
+      issueDate: '07-04-2026',
+      validity: '210 days',
+    },
+  },
+];
+
+function generateFencingBidders() {
+  for (const b of fencingBidders) {
+    const dir = fencingDir(b.slug);
+    console.log(`\nGenerating ${b.company} (${b.slug})…`);
+
+    coverLetter(
+      {
+        company: b.company,
+        address: b.address,
+        ceoName: b.ceo.name,
+        ceoDesignation: b.ceo.designation,
+        since: b.incDate.split('-')[2],
+        body: b.coverBody,
+      },
+      join(dir, '01-cover-letter.pdf'),
+    );
+    caCertificate(
+      {
+        company: b.company,
+        pan: b.pan,
+        caFirm: b.ca.caFirm,
+        caName: b.ca.caName,
+        caRegNo: b.ca.caRegNo,
+        udin: b.ca.udin,
+        turnovers: b.ca.turnovers,
+        place: b.ca.place,
+        date: b.ca.date,
+      },
+      join(dir, '02-ca-turnover-certificate.pdf'),
+    );
+    solvencyCertificate(
+      { company: b.company, ...b.solvency },
+      join(dir, '03-solvency-certificate.pdf'),
+    );
+    gstCertificate(
+      {
+        company: b.company,
+        gstin: b.gstin,
+        legalName: b.legalName,
+        dateOfRegistration: b.dateOfRegistration,
+        address: b.address,
+        status: b.gstStatus,
+      },
+      join(dir, '04-gst-registration-certificate.pdf'),
+    );
+    isoCertificate({ company: b.company, ...b.iso9001 }, join(dir, '05-iso-9001-certificate.pdf'));
+    panCard(
+      {
+        pan: b.pan,
+        name: b.legalName.toUpperCase(),
+        dateOfIncorporation: b.incDate,
+        fatherOrFirm:
+          b.legalName.includes('Private Limited') || b.legalName.includes('Limited')
+            ? 'Private Limited Company'
+            : b.legalName.includes('Partnership')
+              ? 'Partnership Firm'
+              : 'Sole Proprietorship',
+      },
+      join(dir, '06-pan-card.pdf'),
+    );
+    projectsList({ company: b.company, projects: b.projects }, join(dir, '07-projects-list.pdf'));
+    bankGuarantee({ company: b.company, ...b.bg }, join(dir, '08-emd-bank-guarantee.pdf'));
+  }
+}
+
+console.log('\nGenerating CRPF border fencing tender PDF…');
+generateFencingTender();
+generateFencingBidders();
 
 console.log('\nDone. Sample data written to', OUT);

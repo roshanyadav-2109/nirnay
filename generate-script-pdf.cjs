@@ -1,0 +1,195 @@
+const puppeteer = require('puppeteer');
+const path = require('path');
+const fs = require('fs');
+
+const html = `<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Nirnay — Demo Video Script</title>
+<link href="https://fonts.googleapis.com/css2?family=Latin+Modern+Roman&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 22mm 20mm 22mm 20mm; }
+  html, body { margin:0; padding:0; }
+  body {
+    font-family: "Crimson Text", "Latin Modern Roman", Georgia, serif;
+    font-size: 11.5pt;
+    line-height: 1.45;
+    color: #1a1a1a;
+    background: #fff;
+  }
+  h1.title {
+    font-size: 26pt; color:#1F3A93; text-align:center;
+    margin: 0 0 4pt 0; font-weight: 700; letter-spacing: -0.3pt;
+  }
+  .tagline { text-align:center; font-style: italic; color:#333; margin-bottom: 4pt; }
+  .meta { text-align:center; font-size: 9.5pt; color:#555; }
+  .meta strong { color:#1F3A93; }
+  hr.thin { border:none; border-top: 0.5pt solid #999; margin: 14pt 0 14pt 0; }
+  p.howread {
+    font-size: 10.5pt; color:#333; margin: 0 0 14pt 0;
+  }
+  h2 {
+    color:#1F3A93; font-size: 15pt; margin: 18pt 0 6pt 0; font-weight: 700;
+    border-bottom: 0.4pt solid #d0d0d0; padding-bottom: 3pt;
+  }
+  h2 .num { color:#1F3A93; }
+  .ts {
+    font-family: "Source Code Pro", "Consolas", monospace;
+    color:#1F3A93; font-size: 9.5pt; display:inline-block; margin-bottom: 6pt;
+    background:#ECF1F8; padding: 1pt 6pt; border-radius: 2pt;
+  }
+  .spoken {
+    background:#F4F1EC;
+    border-left: 3pt solid #C8B273;
+    padding: 9pt 12pt;
+    margin: 6pt 0 8pt 0;
+    font-style: italic;
+    page-break-inside: avoid;
+  }
+  .spoken p { margin: 0 0 7pt 0; }
+  .spoken p:last-child { margin-bottom: 0; }
+  .spoken b, .spoken strong { font-style: normal; font-weight: 700; }
+  .cue {
+    background:#ECF1F8;
+    padding: 6pt 10pt;
+    margin: 6pt 0 8pt 0;
+    font-size: 10pt;
+    border-radius: 2pt;
+    page-break-inside: avoid;
+  }
+  .cue b { color:#1F3A93; }
+  code, .mono {
+    font-family: "Source Code Pro", "Consolas", monospace;
+    font-size: 0.92em;
+    background:#f3f3f3;
+    padding: 0 3pt;
+    border-radius: 2pt;
+  }
+  ul.notes { padding-left: 18pt; margin: 4pt 0 0 0; }
+  ul.notes li { margin-bottom: 6pt; }
+  .summary {
+    margin-top: 18pt;
+    background: #eef2fa;
+    border: 0.6pt solid #1F3A93;
+    border-radius: 4pt;
+    padding: 14pt 18pt;
+    text-align: center;
+    font-style: italic;
+    font-size: 12.5pt;
+    page-break-inside: avoid;
+  }
+  .summary b { font-style: normal; }
+  .ndash { letter-spacing: 0; }
+  .smcap { font-variant: small-caps; letter-spacing: 0.4pt; }
+  .author-line { text-align:right; font-size: 9.5pt; color:#666; margin-top: 4pt; font-style: italic; }
+</style>
+</head>
+<body>
+
+<h1 class="title">Nirnay &mdash; Demo Video Script</h1>
+<div class="tagline">Every verdict, with evidence.</div>
+<div class="meta">Theme 3 &middot; CRPF Procurement &nbsp;|&nbsp; PanIIT AI for Bharat Hackathon 2026</div>
+<div class="meta">Presenter: <strong>Roshan Yadav</strong> &nbsp;|&nbsp; Target runtime: <strong>2 min 30 s</strong></div>
+
+<hr class="thin">
+
+<p class="howread"><b>How to read this script.</b> Italic blocks on a parchment background are the lines you speak &mdash; straight to camera, conversational, with the small pauses written in. Light-blue blocks are visual cues: what's on screen, what to click, where to look. Timestamps are guides, not handcuffs &mdash; if a beat lands, give it room.</p>
+
+<h2><span class="num">1.</span> Opening &mdash; on camera, looking at lens</h2>
+<span class="ts">[0:00 &ndash; 0:15]</span>
+<div class="spoken">
+  <p>&ldquo;Hi, I'm Roshan.</p>
+  <p>Before I show you what I built, let me ask you something. Imagine you're a CRPF procurement officer. A tender lands on your desk &mdash; a hundred-page PDF, fifteen bidders, each with eight to ten supporting documents. Your job? Decide who's eligible. And defend that decision <i>in court</i>, sometimes years later.&rdquo;</p>
+</div>
+<div class="cue"><b>Direction.</b> Pause here. Let it breathe. Slight shift in tone before the next line.</div>
+<div class="spoken">
+  <p>&ldquo;Right now, that takes officers about <b>two weeks</b> per tender. I built something that does it in under a minute &mdash; and unlike every other AI tool out there, <b>mine can actually be defended in court.</b> It's called <b>Nirnay</b> &mdash; Hindi for <i>verdict</i>. And it's built specifically for Theme 3.&rdquo;</p>
+</div>
+
+<h2><span class="num">2.</span> The problem</h2>
+<span class="ts">[0:15 &ndash; 0:35]</span>
+<div class="cue"><b>Cut to.</b> Screen recording starts. Briefly: B-roll of a desk with scattered PDFs, then transition into the dashboard.</div>
+<div class="spoken">
+  <p>&ldquo;Here's what makes this hard. Existing AI tools give you a black-box yes-or-no. An officer can't walk into a courtroom and say <i>&lsquo;the AI said so.&rsquo;</i> That's not a defence &mdash; that's a liability.</p>
+  <p>The other option? Build an OCR pipeline with LayoutLM, PaddleOCR, six months of fine-tuning. Defence Ministry timelines don't work that way.</p>
+  <p>So I asked one question: <b>what would a system look like that an officer could actually trust?</b> Two non-negotiables fell out of that question.&rdquo;</p>
+</div>
+
+<h2><span class="num">3.</span> The two principles</h2>
+<span class="ts">[0:35 &ndash; 0:55]</span>
+<div class="cue"><b>On screen.</b> Clean text overlay, two principles side by side. Simple typography, lots of whitespace.</div>
+<div class="spoken">
+  <p>&ldquo;<b>One &mdash; every verdict points at evidence.</b> Not a number floating in a dashboard. The exact quote, the exact document, the exact page number. If the system says a bidder's turnover is five crore, you can click it and see the line on the CA certificate that proves it.</p>
+  <p><b>Two &mdash; Nirnay never silently rejects.</b> If evidence is missing or unclear, the verdict is <code>needs_review</code>. Never <code>not_eligible</code>. Because rejecting the wrong bidder costs the government legal cases and reputation. A human review costs ten minutes.&rdquo;</p>
+</div>
+
+<h2><span class="num">4.</span> The demo &mdash; live walkthrough</h2>
+<span class="ts">[0:55 &ndash; 1:45]</span>
+<div class="cue"><b>Cut to app.</b> Dashboard view. Move slowly &mdash; the click-to-evidence moment is the hero of the whole pitch. Don't rush.</div>
+<div class="spoken">
+  <p>&ldquo;Okay, let me show you. <i>(Open dashboard.)</i> This is a real tender. Five bidders, ten eligibility criteria already extracted by Gemini 2.5 Flash &mdash; directly from the PDF, no OCR pipeline.</p>
+  <p><i>(Click Evaluation page.)</i> I hit <b>Run Evaluation</b>. Watch this &mdash; <b>two seconds</b>, all five bidders evaluated against all ten criteria. That's fifty verdicts.</p>
+  <p><i>(Click on Sharma Construction &rarr; eligible.)</i> Eligible. But here's the thing &mdash; <i>(click a verdict)</i> &mdash; every single verdict opens an evidence panel. Look. The exact quoted line from their CA certificate. Document name. Page number. Confidence score. Reasoning. <b>An officer can take a screenshot of this and put it on file.</b></p>
+  <p><i>(Click Gupta Builders &rarr; not eligible.)</i> This one's rejected. Why? Their turnover is 3.4 crore. The tender requires 5. Look &mdash; <i>(point to evidence)</i> &mdash; the source line is right there. Defensible.</p>
+  <p><i>(Click National Infrastructure &rarr; needs review.)</i> And this is the one I'm proudest of. The system <i>doesn't know.</i> Their ISO certificate expires <i>on</i> the bid date. Is that valid or not? The rules are ambiguous. So Nirnay refuses to guess &mdash; it flags it for an officer to decide. <b>That's the rule: when in doubt, ask a human.</b>&rdquo;</p>
+</div>
+
+<h2><span class="num">5.</span> The audit chain &mdash; the killer demo</h2>
+<span class="ts">[1:45 &ndash; 2:10]</span>
+<div class="cue"><b>Hero shot.</b> Pause for a beat after &ldquo;Caught.&rdquo; Let the red row do the work. This is the moment the pitch lands.</div>
+<div class="spoken">
+  <p>&ldquo;Now here's the part I think judges will care about most.</p>
+  <p><i>(Open Audit page.)</i> Every action in the system &mdash; every upload, every verdict, every override &mdash; goes into a hash-chained audit log. SHA-256, computed in the browser. Sixty-plus events here.</p>
+  <p><i>(Click &lsquo;Simulate tampering&rsquo;.)</i> Watch &mdash; I'm going to corrupt one row. Directly via SQL. Like an attacker would.</p>
+  <p><i>(Click &lsquo;Verify Chain&rsquo;.)</i> One click. <b>Caught.</b> Red row. Exact event flagged. <b>This is what makes a verdict survive a court challenge five years from now.</b>&rdquo;</p>
+</div>
+
+<h2><span class="num">6.</span> Closing &mdash; back on camera</h2>
+<span class="ts">[2:10 &ndash; 2:30]</span>
+<div class="spoken">
+  <p>&ldquo;So that's Nirnay.</p>
+  <p>One officer, one tender &mdash; <b>two weeks of work, done in minutes.</b> A hundred percent citation coverage. A tamper-proof audit trail. Built on free-tier Gemini, deployed as a static site, costs less than fifty rupees per tender to run.</p>
+  <p>If a CRPF directorate processes a hundred and twenty tenders a year, that's <b>twelve thousand four hundred officer-hours</b> redirected away from paperwork &mdash; and into the work that actually needs human judgement.</p>
+  <p>I'm Roshan Yadav. This is Nirnay. <b>Every verdict, with evidence.</b></p>
+  <p>Thank you.&rdquo;</p>
+</div>
+
+<h2><span class="num">7.</span> Delivery notes for recording</h2>
+<ul class="notes">
+  <li><b>Pace yourself on the demo segment.</b> The temptation is to rush. Don't. The &ldquo;click and see evidence&rdquo; moment is the entire pitch in one beat &mdash; let it land.</li>
+  <li><b>The tampering demo is your hero shot.</b> Pause for half a second after &ldquo;Caught.&rdquo; The red row is doing the talking; you don't have to.</li>
+  <li><b>Speak like you're explaining it to a friend who's smart but tired.</b> Not a panel. Not a marketing video. Keep contractions (<i>I'm</i>, <i>doesn't</i>); keep the small pauses already written in.</li>
+  <li><b>Theme 3 callout</b> sits in the opening line on purpose. Don't bury it later.</li>
+  <li><b>If you go over time</b>, the easiest cut is the closing economics paragraph (the 12,400 officer-hours line). It's nice-to-have, not load-bearing.</li>
+  <li><b>Camera setup.</b> Eye-level. Soft front light, no harsh shadow. Plain, slightly out-of-focus background &mdash; not a blank wall.</li>
+  <li><b>Audio matters more than video.</b> If you can borrow a lavalier or a decent USB mic, do it. Phone audio reads as &ldquo;hackathon submission&rdquo;; clean audio reads as &ldquo;founder.&rdquo;</li>
+</ul>
+
+<div class="summary">
+&ldquo;Two weeks of paperwork. One minute of AI. Every verdict pointed at the exact line of evidence.<br>
+That's <b>Nirnay</b>.&rdquo;
+</div>
+
+<div class="author-line">Script &middot; Roshan Yadav &middot; PanIIT AI for Bharat 2026</div>
+
+</body></html>`;
+
+(async () => {
+  const htmlPath = path.resolve(__dirname, 'nirnay-demo-script.html');
+  const pdfPath = path.resolve(__dirname, 'nirnay-demo-script.pdf');
+  fs.writeFileSync(htmlPath, html, 'utf8');
+
+  const browser = await puppeteer.launch({ headless: 'new' });
+  const page = await browser.newPage();
+  await page.goto('file://' + htmlPath.replace(/\\/g, '/'), { waitUntil: 'networkidle0' });
+  await page.pdf({
+    path: pdfPath,
+    format: 'A4',
+    printBackground: true,
+    margin: { top: '22mm', bottom: '22mm', left: '20mm', right: '20mm' },
+    displayHeaderFooter: true,
+    headerTemplate: '<div style="font-size:8px; width:100%; padding:0 18mm; color:#888; display:flex; justify-content:space-between;"><span style="font-style:italic;">Nirnay — Demo Video Script</span><span>Roshan Yadav</span></div>',
+    footerTemplate: '<div style="font-size:8px; width:100%; text-align:center; color:#888;">Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>'
+  });
+  await browser.close();
+  console.log('PDF:', pdfPath);
+})();

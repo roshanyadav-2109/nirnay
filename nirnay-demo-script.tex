@@ -1,0 +1,241 @@
+\documentclass[11pt,a4paper]{article}
+
+% --- packages ---
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{hyperref}
+\usepackage{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{booktabs}
+
+% --- colors ---
+\definecolor{accent}{HTML}{1F3A93}
+\definecolor{soft}{HTML}{4A4A4A}
+\definecolor{quotebg}{HTML}{F4F1EC}
+\definecolor{quoteborder}{HTML}{C8B273}
+\definecolor{cuebg}{HTML}{ECF1F8}
+
+% --- hyperref ---
+\hypersetup{
+  colorlinks=true,
+  linkcolor=accent,
+  urlcolor=accent,
+  pdftitle={Nirnay --- Hackathon Demo Video Script},
+  pdfauthor={Roshan Yadav}
+}
+
+% --- section styling ---
+\titleformat{\section}
+  {\color{accent}\Large\bfseries}
+  {\thesection.}{0.6em}{}
+\titleformat{\subsection}
+  {\color{accent}\large\bfseries}
+  {}{0em}{}
+
+% --- header / footer ---
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyhead[L]{\small\color{soft}\textit{Nirnay --- Demo Video Script}}
+\fancyhead[R]{\small\color{soft}Roshan Yadav}
+\fancyfoot[C]{\small\color{soft}Page \thepage}
+
+% --- spoken-line block ---
+\newtcolorbox{spoken}{
+  enhanced,
+  colback=quotebg,
+  colframe=quoteborder,
+  boxrule=0pt,
+  leftrule=3pt,
+  arc=2pt,
+  left=10pt, right=10pt, top=8pt, bottom=8pt,
+  fontupper=\itshape
+}
+
+% --- visual cue block ---
+\newtcolorbox{cue}{
+  enhanced,
+  colback=cuebg,
+  colframe=cuebg,
+  boxrule=0pt,
+  arc=2pt,
+  left=10pt, right=10pt, top=6pt, bottom=6pt,
+  fontupper=\small
+}
+
+% --- timestamp tag ---
+\newcommand{\ts}[1]{{\small\color{accent}\texttt{[#1]}}}
+
+\begin{document}
+
+% --- title block ---
+\begin{center}
+  {\Huge\bfseries\color{accent} Nirnay\,---\,Demo Video Script}\\[6pt]
+  {\large\itshape Every verdict, with evidence.}\\[4pt]
+  {\small Theme 3\,$\cdot$\,CRPF Procurement \quad|\quad PanIIT AI for Bharat Hackathon 2026}\\[2pt]
+  {\small Presenter: \textbf{Roshan Yadav} \quad|\quad Target runtime: \textbf{2\,min 30\,s}}
+\end{center}
+
+\vspace{6pt}
+\hrule height 0.4pt
+\vspace{14pt}
+
+\noindent\textbf{How to read this script.}
+Italic blocks on a parchment background are the lines you speak --- straight to camera, conversational, with the small pauses written in. Light-blue blocks are visual cues: what's on screen, what to click, where to look. Timestamps are guides, not handcuffs --- if a beat lands, give it room.
+
+\vspace{4pt}
+
+% =====================================================
+\section{Opening --- on camera, looking at lens}
+\ts{0:00 -- 0:15}
+
+\begin{spoken}
+``Hi, I'm Roshan.
+
+\smallskip
+Before I show you what I built, let me ask you something. Imagine you're a CRPF procurement officer. A tender lands on your desk\,---\,a hundred-page PDF, fifteen bidders, each with eight to ten supporting documents. Your job? Decide who's eligible. And defend that decision \emph{in court}, sometimes years later.''
+\end{spoken}
+
+\begin{cue}
+\textbf{Direction.} Pause here. Let it breathe. Slight shift in tone before the next line.
+\end{cue}
+
+\begin{spoken}
+``Right now, that takes officers about \textbf{two weeks} per tender. I built something that does it in under a minute\,---\,and unlike every other AI tool out there, \textbf{mine can actually be defended in court.} It's called \textbf{Nirnay}\,---\,Hindi for \emph{verdict}. And it's built specifically for Theme 3.''
+\end{spoken}
+
+% =====================================================
+\section{The problem}
+\ts{0:15 -- 0:35}
+
+\begin{cue}
+\textbf{Cut to.} Screen recording starts. Briefly: B-roll of a desk with scattered PDFs, then transition into the dashboard.
+\end{cue}
+
+\begin{spoken}
+``Here's what makes this hard. Existing AI tools give you a black-box yes-or-no. An officer can't walk into a courtroom and say \emph{`the AI said so.'} That's not a defence\,---\,that's a liability.
+
+\smallskip
+The other option? Build an OCR pipeline with LayoutLM, PaddleOCR, six months of fine-tuning. Defence Ministry timelines don't work that way.
+
+\smallskip
+So I asked one question: \textbf{what would a system look like that an officer could actually trust?} Two non-negotiables fell out of that question.''
+\end{spoken}
+
+% =====================================================
+\section{The two principles}
+\ts{0:35 -- 0:55}
+
+\begin{cue}
+\textbf{On screen.} Clean text overlay, two principles side by side. Simple typography, lots of whitespace.
+\end{cue}
+
+\begin{spoken}
+``\textbf{One\,---\,every verdict points at evidence.} Not a number floating in a dashboard. The exact quote, the exact document, the exact page number. If the system says a bidder's turnover is five crore, you can click it and see the line on the CA certificate that proves it.
+
+\smallskip
+\textbf{Two\,---\,Nirnay never silently rejects.} If evidence is missing or unclear, the verdict is \texttt{needs\_review}. Never \texttt{not\_eligible}. Because rejecting the wrong bidder costs the government legal cases and reputation. A human review costs ten minutes.''
+\end{spoken}
+
+% =====================================================
+\section{The demo --- live walkthrough}
+\ts{0:55 -- 1:45}
+
+\begin{cue}
+\textbf{Cut to app.} Dashboard view. Move slowly --- the click-to-evidence moment is the hero of the whole pitch. Don't rush.
+\end{cue}
+
+\begin{spoken}
+``Okay, let me show you. \emph{(Open dashboard.)} This is a real tender. Five bidders, ten eligibility criteria already extracted by Gemini 2.5 Flash\,---\,directly from the PDF, no OCR pipeline.
+
+\smallskip
+\emph{(Click Evaluation page.)} I hit \textbf{Run Evaluation}. Watch this\,---\,\textbf{two seconds}, all five bidders evaluated against all ten criteria. That's fifty verdicts.
+
+\smallskip
+\emph{(Click on Sharma Construction\,$\rightarrow$\,eligible.)} Eligible. But here's the thing\,---\,\emph{(click a verdict)}\,---\,every single verdict opens an evidence panel. Look. The exact quoted line from their CA certificate. Document name. Page number. Confidence score. Reasoning. \textbf{An officer can take a screenshot of this and put it on file.}
+
+\smallskip
+\emph{(Click Gupta Builders\,$\rightarrow$\,not eligible.)} This one's rejected. Why? Their turnover is 3.4 crore. The tender requires 5. Look\,---\,\emph{(point to evidence)}\,---\,the source line is right there. Defensible.
+
+\smallskip
+\emph{(Click National Infrastructure\,$\rightarrow$\,needs review.)} And this is the one I'm proudest of. The system \emph{doesn't know.} Their ISO certificate expires \emph{on} the bid date. Is that valid or not? The rules are ambiguous. So Nirnay refuses to guess\,---\,it flags it for an officer to decide. \textbf{That's the rule: when in doubt, ask a human.}''
+\end{spoken}
+
+% =====================================================
+\section{The audit chain --- the killer demo}
+\ts{1:45 -- 2:10}
+
+\begin{cue}
+\textbf{Hero shot.} Pause for a beat after ``Caught.'' Let the red row do the work. This is the moment the pitch lands.
+\end{cue}
+
+\begin{spoken}
+``Now here's the part I think judges will care about most.
+
+\smallskip
+\emph{(Open Audit page.)} Every action in the system\,---\,every upload, every verdict, every override\,---\,goes into a hash-chained audit log. SHA-256, computed in the browser. Sixty-plus events here.
+
+\smallskip
+\emph{(Click `Simulate tampering'.)} Watch\,---\,I'm going to corrupt one row. Directly via SQL. Like an attacker would.
+
+\smallskip
+\emph{(Click `Verify Chain'.)} One click. \textbf{Caught.} Red row. Exact event flagged. \textbf{This is what makes a verdict survive a court challenge five years from now.}''
+\end{spoken}
+
+% =====================================================
+\section{Closing --- back on camera}
+\ts{2:10 -- 2:30}
+
+\begin{spoken}
+``So that's Nirnay.
+
+\smallskip
+One officer, one tender\,---\,\textbf{two weeks of work, done in minutes.} A hundred percent citation coverage. A tamper-proof audit trail. Built on free-tier Gemini, deployed as a static site, costs less than fifty rupees per tender to run.
+
+\smallskip
+If a CRPF directorate processes a hundred and twenty tenders a year, that's \textbf{twelve thousand four hundred officer-hours} redirected away from paperwork\,---\,and into the work that actually needs human judgement.
+
+\smallskip
+I'm Roshan Yadav. This is Nirnay. \textbf{Every verdict, with evidence.}
+
+\smallskip
+Thank you.''
+\end{spoken}
+
+% =====================================================
+\section{Delivery notes for recording}
+
+\begin{itemize}[leftmargin=*, itemsep=4pt]
+  \item \textbf{Pace yourself on the demo segment.} The temptation is to rush. Don't. The ``click and see evidence'' moment is the entire pitch in one beat\,---\,let it land.
+  \item \textbf{The tampering demo is your hero shot.} Pause for half a second after ``Caught.'' The red row is doing the talking; you don't have to.
+  \item \textbf{Speak like you're explaining it to a friend who's smart but tired.} Not a panel. Not a marketing video. Keep contractions ($I'm$, $doesn't$); keep the small pauses already written in.
+  \item \textbf{Theme 3 callout} sits in the opening line on purpose. Don't bury it later.
+  \item \textbf{If you go over time}, the easiest cut is the closing economics paragraph (the 12{,}400 officer-hours line). It's nice-to-have, not load-bearing.
+  \item \textbf{Camera setup.} Eye-level. Soft front light, no harsh shadow. Plain, slightly out-of-focus background\,---\,not a blank wall.
+  \item \textbf{Audio matters more than video.} If you can borrow a lavalier or a decent USB mic, do it. Phone audio reads as ``hackathon submission''; clean audio reads as ``founder.''
+\end{itemize}
+
+\vspace{10pt}
+
+% =====================================================
+\section*{One-line summary}
+\addcontentsline{toc}{section}{One-line summary}
+
+\begin{tcolorbox}[
+  enhanced, colback=accent!8, colframe=accent, boxrule=0.6pt, arc=3pt,
+  left=12pt, right=12pt, top=10pt, bottom=10pt
+]
+\centering\large\itshape
+``Two weeks of paperwork. One minute of AI. Every verdict pointed at the exact line of evidence.\\
+That's Nirnay.''
+\end{tcolorbox}
+
+\end{document}
