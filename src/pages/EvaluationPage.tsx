@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Eye, BarChart3, UserPlus } from 'lucide-react';
+import { Play, Eye, BarChart3, UserPlus, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useEvaluationStore } from '../store/evaluation-store';
 import { useTender } from '../hooks/useTender';
@@ -8,10 +8,13 @@ import { useBidders } from '../hooks/useBidders';
 import BidderCard from '../components/evaluation/BidderCard';
 import EvidencePanel from '../components/evaluation/EvidencePanel';
 import AddBidderModal from '../components/evaluation/AddBidderModal';
+import RankingPanel from '../components/evaluation/RankingPanel';
 import StatusPill from '../components/common/StatusPill';
 import ConfidenceMeter from '../components/common/ConfidenceMeter';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { hasGeminiApiKey } from '../config/gemini';
+import { rankBidders } from '../lib/verdict-engine';
+import { isDemoMode } from '../lib/demo-mode';
 import type { Evaluation } from '../types';
 
 export default function EvaluationPage() {
@@ -55,18 +58,47 @@ export default function EvaluationPage() {
   const expectedEvals = bidders.length * criteria.length;
   const allEvaluated = totalEvals >= expectedEvals && expectedEvals > 0;
 
-  const startEvaluation = async () => {
-    if (!hasGeminiApiKey()) {
-      toast.error('Set your Gemini API key in Settings first');
+  // Identify which bidders are already evaluated vs pending
+  const pendingBidders = bidders.filter((b) => b.status !== 'evaluated');
+  const evaluatedCount = bidders.length - pendingBidders.length;
+
+  const rankings = useMemo(() => {
+    if (!allEvaluated || bidders.length === 0) return [];
+    const map = new Map<string, Array<Evaluation & { criterion?: typeof criteria[number] }>>();
+    for (const b of bidders) map.set(b.id, evalsByBidder[b.id] || []);
+    return rankBidders(bidders, map);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allEvaluated, bidders, evaluations]);
+
+  const runEvaluation = async (force = false) => {
+    if (!hasGeminiApiKey() && !isDemoMode()) {
+      toast.error('Set your Gemini API key in Settings first (or enable Demo mode)');
       navigate('/settings');
       return;
     }
     if (!bidders.length) return toast.error('Add bidders first');
     if (!criteria.length) return toast.error('Extract criteria first');
-    const t = toast.loading(`Evaluating ${bidders.length} bidder(s)…`);
+
+    const target = force ? bidders : pendingBidders;
+    if (!force && target.length === 0) {
+      toast.success('All bidders already evaluated');
+      return;
+    }
+    const verb = force ? 'Re-evaluating' : 'Evaluating';
+    const t = toast.loading(
+      `${verb} ${target.length} bidder${target.length === 1 ? '' : 's'}${
+        evaluatedCount && !force ? ` (skipping ${evaluatedCount} already evaluated)` : ''
+      }…`,
+    );
     try {
-      await evaluateAll(bidders, criteria);
-      toast.success('All evaluations complete', { id: t });
+      const { evaluated, skipped } = await evaluateAll(bidders, criteria, { force });
+      const msg =
+        evaluated > 0
+          ? `Evaluated ${evaluated} bidder${evaluated === 1 ? '' : 's'}${
+              skipped > 0 ? ` (skipped ${skipped})` : ''
+            }`
+          : 'No new bidders to evaluate';
+      toast.success(msg, { id: t });
     } catch (e) {
       toast.error(`Failed: ${(e as Error).message}`, { id: t });
     }
@@ -109,12 +141,34 @@ export default function EvaluationPage() {
           >
             <BarChart3 size={13} /> Report
           </button>
+          {pendingBidders.length > 0 && evaluatedCount > 0 && !isProcessing && (
+            <button
+              onClick={() => runEvaluation(true)}
+              className="nirnay-btn-ghost text-xs"
+              title="Force re-evaluate all bidders, including those already done"
+            >
+              <RefreshCw size={12} /> Re-evaluate all
+            </button>
+          )}
           <button
-            onClick={startEvaluation}
-            disabled={isProcessing || !bidders.length}
+            onClick={() => runEvaluation(false)}
+            disabled={isProcessing || !bidders.length || (pendingBidders.length === 0 && allEvaluated)}
             className="nirnay-btn-primary"
+            title={
+              pendingBidders.length === 0
+                ? 'All bidders already evaluated'
+                : `Evaluate ${pendingBidders.length} bidder${pendingBidders.length === 1 ? '' : 's'} (${evaluatedCount} already done will be skipped)`
+            }
           >
-            {isProcessing ? <LoadingSpinner /> : <><Play size={14} /> Run Evaluation</>}
+            {isProcessing ? (
+              <LoadingSpinner />
+            ) : pendingBidders.length === 0 ? (
+              <><Play size={14} /> All evaluated</>
+            ) : evaluatedCount > 0 ? (
+              <><Play size={14} /> Evaluate {pendingBidders.length} new</>
+            ) : (
+              <><Play size={14} /> Run Evaluation</>
+            )}
           </button>
         </div>
       </div>
@@ -125,6 +179,8 @@ export default function EvaluationPage() {
         onClose={() => setAddBidderOpen(false)}
         onAdded={refreshBidders}
       />
+
+      {rankings.length > 0 && <RankingPanel rankings={rankings} />}
 
       <div className="grid grid-cols-12 gap-6">
         <div className="col-span-12 lg:col-span-3 space-y-2">

@@ -208,15 +208,27 @@ export function useBidders() {
   );
 
   const evaluateAll = useCallback(
-    async (bidders: Bidder[], criteria: Criterion[]) => {
+    async (
+      bidders: Bidder[],
+      criteria: Criterion[],
+      opts?: { force?: boolean },
+    ): Promise<{ evaluated: number; skipped: number }> => {
+      const todo = opts?.force
+        ? bidders
+        : bidders.filter((b) => b.status !== 'evaluated');
+      const skipped = bidders.length - todo.length;
+      if (todo.length === 0) {
+        return { evaluated: 0, skipped };
+      }
       setPipelineStage('match', 'active');
       setIsProcessing(true);
       try {
-        await runWithConcurrency(bidders, EVALUATE_CONCURRENCY, async (bidder) => {
+        await runWithConcurrency(todo, EVALUATE_CONCURRENCY, async (bidder) => {
           await evaluateBidder(bidder, criteria);
         });
         setPipelineStage('match', 'done');
         setPipelineStage('verdict', 'done');
+        return { evaluated: todo.length, skipped };
       } finally {
         setIsProcessing(false);
       }

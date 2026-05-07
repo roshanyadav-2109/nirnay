@@ -1,13 +1,16 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Printer, Check, X, AlertTriangle } from 'lucide-react';
+import { FileDown, Check, X, AlertTriangle, Printer, Award } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useEvaluationStore } from '../store/evaluation-store';
 import { useTender } from '../hooks/useTender';
 import { useBidders } from '../hooks/useBidders';
-import { logAuditEvent } from '../lib/audit-logger';
+import { getOfficerName } from '../lib/officer';
 import StatusPill from '../components/common/StatusPill';
-import { computeOverallVerdict } from '../lib/verdict-engine';
-import type { Evaluation } from '../types';
+import RankingPanel from '../components/evaluation/RankingPanel';
+import { computeOverallVerdict, rankBidders } from '../lib/verdict-engine';
+import { generateReportPdf } from '../lib/report-pdf';
+import type { Evaluation, Criterion } from '../types';
 
 export default function ReportPage() {
   const navigate = useNavigate();
@@ -55,15 +58,57 @@ export default function ReportPage() {
     return { eligible, notEligible, needsReview };
   }, [bidders, evalsByBidder]);
 
-  const handlePrint = async () => {
-    if (tender) {
-      await logAuditEvent({
-        event_type: 'report_generated',
-        entity_type: 'tender',
-        entity_id: tender.id,
-        payload: { ...summary, format: 'print' },
-      });
+  const [generating, setGenerating] = useState(false);
+
+  const rankings = useMemo(() => {
+    if (!tender || bidders.length === 0) return [];
+    const map = new Map<string, Array<Evaluation & { criterion?: Criterion }>>();
+    for (const b of bidders) map.set(b.id, evalsByBidder[b.id] || []);
+    return rankBidders(bidders, map);
+  }, [tender, bidders, evalsByBidder]);
+
+  const handleGenerate = async () => {
+    if (!tender) return;
+    if (evaluations.length === 0) {
+      toast.error('Run evaluation first — there are no verdicts to put in the report.');
+      return;
     }
+    setGenerating(true);
+    const t = toast.loading('Generating institutional report PDF…');
+    try {
+      const enrichedEvals = evaluations.map((ev) => ({
+        ...ev,
+        criterion: criteria.find((c) => c.id === ev.criterion_id),
+      }));
+      const result = await generateReportPdf({
+        tender,
+        criteria,
+        bidders,
+        evaluations: enrichedEvals,
+        officerName: getOfficerName(),
+      });
+
+      const url = URL.createObjectURL(result.blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = result.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success(
+        `Report saved · File No. ${result.fileNo}\nSHA-256: ${result.documentHash.slice(0, 12)}…`,
+        { id: t, duration: 6000 },
+      );
+    } catch (e) {
+      toast.error(`Failed: ${(e as Error).message}`, { id: t });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handlePrint = () => {
     window.print();
   };
 
@@ -93,10 +138,25 @@ export default function ReportPage() {
             {tender.name} · {bidders.length} bidder(s) × {criteria.length} criteria
           </p>
         </div>
-        <button onClick={handlePrint} className="nirnay-btn-primary">
-          <Printer size={14} /> Export / Print
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={handlePrint} className="nirnay-btn-ghost text-xs" title="Quick print of the on-screen matrix">
+            <Printer size={13} /> Quick print
+          </button>
+          <button
+            onClick={handleGenerate}
+            disabled={generating || evaluations.length === 0}
+            className="nirnay-btn-primary"
+          >
+            <FileDown size={14} /> {generating ? 'Generating…' : 'Generate Official Report'}
+          </button>
+        </div>
       </div>
+
+      {rankings.length > 0 && rankings.some((r) => r.rank !== null) && (
+        <div className="no-print">
+          <RankingPanel rankings={rankings} />
+        </div>
+      )}
 
       <div className="nirnay-card p-6 print:shadow-none print:border-0">
         <div className="text-center mb-6">
