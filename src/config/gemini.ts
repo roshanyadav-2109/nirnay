@@ -1,7 +1,32 @@
 import { GoogleGenerativeAI, GenerativeModel, Part } from '@google/generative-ai';
 
 const GEMINI_KEY_STORAGE = 'nirnay_gemini_api_key';
-export const GEMINI_MODEL_ID = 'gemini-2.0-flash';
+const GEMINI_MODEL_STORAGE = 'nirnay_gemini_model';
+
+export const GEMINI_MODELS = [
+  {
+    id: 'gemini-2.5-flash',
+    label: 'Gemini 2.5 Flash (recommended)',
+    note: 'Production. Free tier: 15 RPM, 1500 req/day.',
+  },
+  {
+    id: 'gemini-2.5-flash-lite',
+    label: 'Gemini 2.5 Flash Lite',
+    note: 'Cheaper, faster. Good fallback if 2.5 Flash hits quota.',
+  },
+  {
+    id: 'gemini-2.0-flash',
+    label: 'Gemini 2.0 Flash',
+    note: 'Some keys/projects have limit: 0 free tier — switch to 2.5 if you see "quota 0".',
+  },
+  {
+    id: 'gemini-1.5-flash',
+    label: 'Gemini 1.5 Flash (legacy)',
+    note: 'Still works on most keys; widest free-tier availability.',
+  },
+] as const;
+
+export const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
 
 export function getGeminiApiKey(): string | null {
   if (typeof window === 'undefined') return null;
@@ -23,6 +48,18 @@ export function hasGeminiApiKey(): boolean {
   return !!getGeminiApiKey();
 }
 
+export function getGeminiModelId(): string {
+  if (typeof window === 'undefined') return DEFAULT_GEMINI_MODEL;
+  return localStorage.getItem(GEMINI_MODEL_STORAGE) || DEFAULT_GEMINI_MODEL;
+}
+
+export function setGeminiModelId(id: string): void {
+  localStorage.setItem(GEMINI_MODEL_STORAGE, id);
+}
+
+// Backward-compat export so other modules that imported GEMINI_MODEL_ID still work.
+export const GEMINI_MODEL_ID = DEFAULT_GEMINI_MODEL;
+
 function getModel(): GenerativeModel {
   const key = getGeminiApiKey();
   if (!key) {
@@ -32,7 +69,7 @@ function getModel(): GenerativeModel {
   }
   const genAI = new GoogleGenerativeAI(key);
   return genAI.getGenerativeModel({
-    model: GEMINI_MODEL_ID,
+    model: getGeminiModelId(),
     generationConfig: {
       temperature: 0.1,
       topP: 0.9,
@@ -42,16 +79,46 @@ function getModel(): GenerativeModel {
   });
 }
 
+// ------------------------------------------------------------------
+// Throttling — free tier is 15 RPM. We aim for ~13 RPM (4.5s gap)
+// to leave room for jitter.
+// ------------------------------------------------------------------
+const MIN_GAP_MS = 4500;
+let lastCallAt = 0;
+let inFlight: Promise<void> = Promise.resolve();
+
+async function throttle(): Promise<void> {
+  // Serialize through a single chain so concurrent callers also get spaced.
+  const next = inFlight.then(async () => {
+    const now = Date.now();
+    const wait = Math.max(0, lastCallAt + MIN_GAP_MS - now);
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    lastCallAt = Date.now();
+  });
+  inFlight = next.catch(() => {});
+  return next;
+}
+
 export interface GeminiCallOptions {
   prompt: string;
   pdfs?: Array<{ data: string; mimeType?: string }>;
   retries?: number;
 }
 
+function isQuotaError(err: unknown): { is429: boolean; retryAfterMs?: number } {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (msg.includes('429') || /quota/i.test(msg)) {
+    const m = msg.match(/Please retry in ([0-9.]+)s/);
+    if (m) return { is429: true, retryAfterMs: Math.ceil(parseFloat(m[1]) * 1000) };
+    return { is429: true };
+  }
+  return { is429: false };
+}
+
 export async function callGemini({
   prompt,
   pdfs = [],
-  retries = 2,
+  retries = 3,
 }: GeminiCallOptions): Promise<string> {
   const model = getModel();
   const parts: Part[] = [];
@@ -69,13 +136,25 @@ export async function callGemini({
   let lastErr: unknown;
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
+      await throttle();
       const result = await model.generateContent(parts);
-      const text = result.response.text();
-      return text;
+      return result.response.text();
     } catch (err) {
       lastErr = err;
+      const { is429, retryAfterMs } = isQuotaError(err);
+
+      if (is429 && /limit:\s*0/.test(err instanceof Error ? err.message : '')) {
+        // Hard zero-quota — no point retrying. Surface a clear actionable error.
+        throw new Error(
+          `Quota = 0 for model "${getGeminiModelId()}" on this API key. ` +
+            `Open Settings and switch to "Gemini 2.5 Flash" (or 1.5 Flash). ` +
+            `If 2.5 Flash also fails, the key needs free-tier access enabled at https://aistudio.google.com/apikey.`,
+        );
+      }
+
       if (attempt < retries) {
-        await new Promise((r) => setTimeout(r, 700 * (attempt + 1)));
+        const backoff = retryAfterMs ?? 1500 * (attempt + 1);
+        await new Promise((r) => setTimeout(r, backoff));
         continue;
       }
     }
